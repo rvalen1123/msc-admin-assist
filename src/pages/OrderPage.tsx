@@ -4,12 +4,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ChevronLeft, ChevronRight, PlusCircle, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import FormStepIndicator from '@/components/FormStepIndicator';
-import FormField from '@/components/FormField';
 import { useForm } from '@/context/FormContext';
 import { FormSection as FormSectionType, Product } from '@/types';
 import { getProductsByManufacturer } from '@/data/mockData';
+import ProductList from '@/components/orders/ProductList';
+import AddProductForm from '@/components/orders/AddProductForm';
+import OrderSummary from '@/components/orders/OrderSummary';
+import OrderFormSection from '@/components/orders/OrderFormSection';
+
+interface ProductItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
 
 const OrderPage: React.FC = () => {
   const { 
@@ -26,7 +36,7 @@ const OrderPage: React.FC = () => {
   
   const [loading, setLoading] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
-  const [productList, setProductList] = useState<{id: string; name: string; quantity: number; price: number}[]>([]);
+  const [productList, setProductList] = useState<ProductItem[]>([]);
   const { toast } = useToast();
   
   // Set active form type to order on component mount
@@ -85,11 +95,6 @@ const OrderPage: React.FC = () => {
   // Handle removing product from cart
   const handleRemoveProduct = (id: string) => {
     setProductList(prev => prev.filter(p => p.id !== id));
-  };
-  
-  // Calculate order total
-  const calculateTotal = () => {
-    return productList.reduce((sum, product) => sum + (product.price * product.quantity), 0).toFixed(2);
   };
   
   // Handle form submission
@@ -187,211 +192,38 @@ const OrderPage: React.FC = () => {
             {!isReviewStep ? (
               <>
                 {sections.map((section) => (
-                  <div key={section.id} className="form-section mb-8">
-                    <div className="section-header">
-                      {section.title}
-                    </div>
-                    <div className="form-section-content">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {section.fields.map((field) => (
-                          <div key={field.id} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
-                            <FormField
-                              field={{
-                                ...field,
-                                // Dynamically set product options based on selected manufacturer
-                                options: field.id === 'product' && products.length > 0
-                                  ? [
-                                      { label: 'Select a product', value: '' },
-                                      ...products.map(p => ({ label: p.name, value: p.id }))
-                                    ]
-                                  : field.options
-                              }}
-                              value={formData[field.id]}
-                              onChange={handleFieldChange}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {isProductsStep && (
-                        <div className="mt-4">
-                          <Button 
-                            type="button"
-                            onClick={handleAddProduct}
-                            className="flex items-center"
-                          >
-                            <PlusCircle className="mr-1 h-4 w-4" /> Add Product
-                          </Button>
-                          
-                          <div className="mt-6">
-                            {productList.length === 0 ? (
-                              <p className="text-gray-500 text-sm italic py-4">
-                                No products added yet. Use the form above to add products.
-                              </p>
-                            ) : (
-                              <div className="border rounded-md">
-                                <table className="w-full">
-                                  <thead className="bg-gray-50">
-                                    <tr>
-                                      <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Product
-                                      </th>
-                                      <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Quantity
-                                      </th>
-                                      <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Price
-                                      </th>
-                                      <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Total
-                                      </th>
-                                      <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Actions
-                                      </th>
-                                    </tr>
-                                  </thead>
-                                  <tbody className="divide-y divide-gray-200">
-                                    {productList.map((product) => (
-                                      <tr key={product.id} className="hover:bg-gray-50">
-                                        <td className="py-3 px-3 text-sm">
-                                          {product.name}
-                                        </td>
-                                        <td className="py-3 px-3 text-sm">
-                                          {product.quantity}
-                                        </td>
-                                        <td className="py-3 px-3 text-sm">
-                                          ${product.price.toFixed(2)}
-                                        </td>
-                                        <td className="py-3 px-3 text-sm">
-                                          ${(product.price * product.quantity).toFixed(2)}
-                                        </td>
-                                        <td className="py-3 px-3 text-sm">
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-100"
-                                            onClick={() => handleRemoveProduct(product.id)}
-                                          >
-                                            <Trash2 className="h-4 w-4" />
-                                          </Button>
-                                        </td>
-                                      </tr>
-                                    ))}
-                                    <tr className="bg-gray-50">
-                                      <td colSpan={3} className="py-3 px-3 text-sm font-medium text-right">
-                                        Subtotal:
-                                      </td>
-                                      <td colSpan={2} className="py-3 px-3 text-sm font-medium">
-                                        ${calculateTotal()}
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                  <OrderFormSection 
+                    key={section.id}
+                    section={section}
+                    formData={formData}
+                    onFieldChange={handleFieldChange}
+                  />
+                ))}
+                
+                {isProductsStep && (
+                  <div className="mt-4">
+                    <AddProductForm
+                      products={products}
+                      formData={formData}
+                      onFieldChange={handleFieldChange}
+                      onAddProduct={handleAddProduct}
+                    />
+                    
+                    <div className="mt-6">
+                      <ProductList 
+                        products={productList} 
+                        onRemove={handleRemoveProduct}
+                      />
                     </div>
                   </div>
-                ))}
+                )}
               </>
             ) : (
-              <div className="form-section mb-8">
-                <div className="section-header">
-                  Order Summary
-                </div>
-                <div className="form-section-content">
-                  <div className="space-y-8">
-                    {activeForm.sections.slice(0, 3).map((section) => (
-                      <div key={section.id}>
-                        <h3 className="font-medium text-primary mb-3">{section.title}</h3>
-                        <div className="bg-gray-50 p-4 rounded-md">
-                          <dl className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
-                            {section.fields.map((field) => {
-                              const value = formData[field.id];
-                              if (!value) return null;
-                              
-                              let displayValue: string;
-                              if (field.type === 'select' && field.options) {
-                                const option = field.options.find(o => o.value === value);
-                                displayValue = option?.label || value;
-                              } else if (field.type === 'checkbox' && field.options) {
-                                displayValue = value ? 'Yes' : 'No';
-                              } else {
-                                displayValue = value.toString();
-                              }
-                              
-                              return (
-                                <div key={field.id} className="py-1">
-                                  <dt className="text-xs font-medium text-gray-500">{field.label}:</dt>
-                                  <dd className="text-sm">{displayValue}</dd>
-                                </div>
-                              );
-                            })}
-                          </dl>
-                        </div>
-                      </div>
-                    ))}
-                    
-                    <div>
-                      <h3 className="font-medium text-primary mb-3">Order Products</h3>
-                      <div className="bg-gray-50 p-4 rounded-md">
-                        {productList.length === 0 ? (
-                          <p className="text-gray-500 text-sm italic">No products selected.</p>
-                        ) : (
-                          <div className="border rounded-md bg-white">
-                            <table className="w-full">
-                              <thead className="bg-gray-50">
-                                <tr>
-                                  <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Product
-                                  </th>
-                                  <th className="py-2 px-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Quantity
-                                  </th>
-                                  <th className="py-2 px-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Price
-                                  </th>
-                                  <th className="py-2 px-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Total
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-gray-200">
-                                {productList.map((product) => (
-                                  <tr key={product.id}>
-                                    <td className="py-3 px-3 text-sm">
-                                      {product.name}
-                                    </td>
-                                    <td className="py-3 px-3 text-sm">
-                                      {product.quantity}
-                                    </td>
-                                    <td className="py-3 px-3 text-sm text-right">
-                                      ${product.price.toFixed(2)}
-                                    </td>
-                                    <td className="py-3 px-3 text-sm text-right">
-                                      ${(product.price * product.quantity).toFixed(2)}
-                                    </td>
-                                  </tr>
-                                ))}
-                                <tr className="bg-gray-50">
-                                  <td colSpan={3} className="py-3 px-3 text-sm font-medium text-right">
-                                    Subtotal:
-                                  </td>
-                                  <td className="py-3 px-3 text-sm font-medium text-right">
-                                    ${calculateTotal()}
-                                  </td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <OrderSummary 
+                sections={activeForm.sections} 
+                formData={formData}
+                productList={productList}
+              />
             )}
             
             <Separator className="my-6" />
