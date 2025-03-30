@@ -8,7 +8,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuLink,
+  SidebarMenuButton,
 } from "@/components/ui/sidebar";
 import { Home, FileText, ShieldCheck, Package, Settings, BarChart3, Users, HelpCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -85,7 +85,7 @@ const Sidebar: React.FC = () => {
         <SidebarMenu>
           {filteredMenuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <SidebarMenuLink asChild>
+              <SidebarMenuButton asChild>
                 <Link
                   to={item.href}
                   className={cn(
@@ -98,7 +98,7 @@ const Sidebar: React.FC = () => {
                   <item.icon className="h-4 w-4" />
                   {item.label}
                 </Link>
-              </SidebarMenuLink>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

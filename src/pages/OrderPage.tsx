@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { useToast } from '@/components/ui/toast';
+import { useToast } from '@/hooks/use-toast';
 import { ChevronLeft, ChevronRight, PlusCircle, Trash2 } from 'lucide-react';
 import FormStepIndicator from '@/components/FormStepIndicator';
 import FormField from '@/components/FormField';
