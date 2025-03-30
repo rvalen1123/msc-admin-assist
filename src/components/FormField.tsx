@@ -45,11 +45,12 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
     switch (field.type) {
       case 'text':
       case 'email':
+      case 'number':
       case 'phone':
       case 'date':
         return (
           <Input
-            type={field.type === 'date' ? 'date' : field.type === 'phone' ? 'tel' : field.type}
+            type={field.type === 'date' ? 'date' : field.type === 'phone' ? 'tel' : field.type === 'number' ? 'number' : field.type}
             id={field.id}
             placeholder={field.placeholder}
             value={value || ''}
