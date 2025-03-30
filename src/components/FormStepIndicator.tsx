@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -29,7 +28,7 @@ const FormStepIndicator: React.FC<FormStepIndicatorProps> = ({
               key={step.id}
               className={cn(
                 "relative flex flex-col items-center",
-                index === steps.length - 1 ? "w-auto" : "w-full"
+                "flex-1"
               )}
             >
               <button
