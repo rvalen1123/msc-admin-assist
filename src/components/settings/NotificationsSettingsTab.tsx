@@ -33,10 +33,10 @@ const NotificationsSettingsTab = () => {
             control={form.control}
             name="emailNotifications"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">Email Notifications</FormLabel>
-                  <FormDescription>
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 sm:p-4">
+                <div className="space-y-0.5 pr-2">
+                  <FormLabel className="text-sm sm:text-base">Email Notifications</FormLabel>
+                  <FormDescription className="text-xs sm:text-sm">
                     Receive notifications via email
                   </FormDescription>
                 </div>
@@ -54,10 +54,10 @@ const NotificationsSettingsTab = () => {
             control={form.control}
             name="submissionAlerts"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">Form Submission Alerts</FormLabel>
-                  <FormDescription>
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 sm:p-4">
+                <div className="space-y-0.5 pr-2">
+                  <FormLabel className="text-sm sm:text-base">Form Submission Alerts</FormLabel>
+                  <FormDescription className="text-xs sm:text-sm">
                     Be notified when new forms are submitted
                   </FormDescription>
                 </div>
@@ -75,10 +75,10 @@ const NotificationsSettingsTab = () => {
             control={form.control}
             name="weeklyReports"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">Weekly Reports</FormLabel>
-                  <FormDescription>
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 sm:p-4">
+                <div className="space-y-0.5 pr-2">
+                  <FormLabel className="text-sm sm:text-base">Weekly Reports</FormLabel>
+                  <FormDescription className="text-xs sm:text-sm">
                     Receive weekly activity summary reports
                   </FormDescription>
                 </div>
@@ -96,10 +96,10 @@ const NotificationsSettingsTab = () => {
             control={form.control}
             name="systemUpdates"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">System Updates</FormLabel>
-                  <FormDescription>
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 sm:p-4">
+                <div className="space-y-0.5 pr-2">
+                  <FormLabel className="text-sm sm:text-base">System Updates</FormLabel>
+                  <FormDescription className="text-xs sm:text-sm">
                     Get notifications about system updates and maintenance
                   </FormDescription>
                 </div>
@@ -117,10 +117,10 @@ const NotificationsSettingsTab = () => {
             control={form.control}
             name="marketingEmails"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">Marketing Emails</FormLabel>
-                  <FormDescription>
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 sm:p-4">
+                <div className="space-y-0.5 pr-2">
+                  <FormLabel className="text-sm sm:text-base">Marketing Emails</FormLabel>
+                  <FormDescription className="text-xs sm:text-sm">
                     Receive promotional content and newsletters
                   </FormDescription>
                 </div>

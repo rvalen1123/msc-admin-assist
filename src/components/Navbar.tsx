@@ -122,7 +122,7 @@ const Navbar: React.FC = () => {
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem asChild>
-                  <Link to="/settings/account" className="w-full flex items-center cursor-pointer">
+                  <Link to="/settings?tab=account" className="w-full flex items-center cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Link>
