@@ -26,7 +26,7 @@ export interface Action {
   icon: React.ReactNode;
   onClick: () => void;
   condition?: boolean;
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive';  // Fixed: Properly typed this to match expected values
 }
 
 interface SubmissionActionsMenuProps {
