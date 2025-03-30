@@ -3,6 +3,8 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import helmet from 'helmet';
+import * as compression from 'compression';
+import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -22,6 +24,16 @@ async function bootstrap() {
     crossOriginEmbedderPolicy: false,
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   }));
+
+  // Enable compression
+  app.use(compression({
+    level: 6, // Compression level (1-9, higher = better compression but slower)
+    threshold: 1024, // Only compress responses larger than 1KB
+  }));
+
+  // Request size limits
+  app.use(json({ limit: '10mb' })); // Limit JSON payloads to 10MB
+  app.use(urlencoded({ extended: true, limit: '10mb' })); // Limit URL-encoded payloads to 10MB
 
   // Enable CORS with enhanced security
   app.enableCors({
