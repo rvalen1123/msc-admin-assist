@@ -41,9 +41,7 @@ export const CheckboxField: React.FC<CheckboxFieldProps> = ({ field, value, onCh
         // Handle both array of values and single boolean
         const isChecked = Array.isArray(value)
           ? value.includes(option.value)
-          : option.value === 'true'
-            ? !!value
-            : value === option.value;
+          : option.value === 'true' && Boolean(value);
         
         return (
           <div key={option.value || `option-${option.label}`} className="flex items-center space-x-2">
