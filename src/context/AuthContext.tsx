@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<User>;
   logout: () => void;
   setCurrentUserRole: (role: 'admin' | 'customer' | 'sales') => void;
+  updateUserProfile: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -57,6 +58,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('currentUser', JSON.stringify(userForRole));
     }
   };
+  
+  const updateUserProfile = (userData: Partial<User>) => {
+    if (currentUser) {
+      const updatedUser = { ...currentUser, ...userData };
+      setCurrentUser(updatedUser);
+      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    }
+  };
 
   useEffect(() => {
     // Check if user is stored in localStorage
@@ -81,7 +90,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading,
     login,
     logout,
-    setCurrentUserRole
+    setCurrentUserRole,
+    updateUserProfile
   };
 
   return (
