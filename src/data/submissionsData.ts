@@ -60,5 +60,19 @@ export const mockSubmissions: FormSubmission[] = [
     submittedAt: new Date(2023, 4, 12),
     completedAt: new Date(2023, 4, 14),
     pdfUrl: 'https://example.com/document.pdf'
+  },
+  {
+    id: '5',
+    templateId: 'insurance-2',
+    userId: 'user-5',
+    data: {
+      patientName: 'Sarah Williams',
+      insuranceProvider: 'Aetna',
+      policyNumber: 'AE67890',
+      productId: 'prod-5',
+      manufacturerId: 'manu-2'
+    },
+    status: 'rejected',
+    submittedAt: new Date(2023, 4, 10)
   }
 ];

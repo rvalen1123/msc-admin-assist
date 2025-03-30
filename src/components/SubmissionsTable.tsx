@@ -67,7 +67,12 @@ const SubmissionsTable: React.FC<SubmissionsTableProps> = ({
             <TableCell>{getFormTypeLabel(submission.templateId)}</TableCell>
             <TableCell>{submission.data.customerName || submission.data.patientName || 'Unknown'}</TableCell>
             <TableCell>{formatDate(submission.submittedAt)}</TableCell>
-            <TableCell><StatusBadge status={submission.status} /></TableCell>
+            <TableCell>
+              <StatusBadge 
+                status={submission.status} 
+                size="sm" 
+              />
+            </TableCell>
             <TableCell>
               <SubmissionActionsMenu
                 submission={submission}

@@ -59,7 +59,13 @@ const SubmissionDetailsDialog: React.FC<SubmissionDetailsDialogProps> = ({
               <h2 className="text-lg font-medium">{getFormTypeLabel(submission.templateId)} Form</h2>
               <p className="text-sm text-gray-500">ID: {submission.id}</p>
             </div>
-            <div><StatusBadge status={submission.status} /></div>
+            <div>
+              <StatusBadge 
+                status={submission.status}
+                size="default" 
+                variant="outline" 
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

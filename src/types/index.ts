@@ -68,7 +68,7 @@ export interface FormSubmission {
   templateId: string;
   userId: string;
   data: Record<string, any>;
-  status: 'draft' | 'submitted' | 'processing' | 'completed';
+  status: 'draft' | 'submitted' | 'processing' | 'completed' | 'rejected';
   submittedAt?: Date;
   completedAt?: Date;
   pdfUrl?: string;
