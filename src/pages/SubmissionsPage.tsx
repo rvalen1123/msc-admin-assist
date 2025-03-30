@@ -29,6 +29,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { FormSubmission } from '@/types';
+import SubmissionDetailsDialog from '@/components/SubmissionDetailsDialog';
 
 // Mock data for submissions
 const mockSubmissions: FormSubmission[] = [
@@ -118,6 +119,8 @@ const SubmissionsPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [submissions, setSubmissions] = useState<FormSubmission[]>(mockSubmissions);
+  const [selectedSubmission, setSelectedSubmission] = useState<FormSubmission | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
   // Check if the user is an admin, if not redirect
   React.useEffect(() => {
@@ -143,6 +146,9 @@ const SubmissionsPage: React.FC = () => {
       title: "Submission Approved",
       description: "The submission has been approved and sent for DocuSeal processing.",
     });
+    
+    // Close dialog if it was opened
+    setDetailsDialogOpen(false);
   };
 
   const handleReject = (submissionId: string) => {
@@ -158,14 +164,14 @@ const SubmissionsPage: React.FC = () => {
       description: "The submission has been returned to draft status.",
       variant: "destructive"
     });
+    
+    // Close dialog if it was opened
+    setDetailsDialogOpen(false);
   };
 
   const handleView = (submission: FormSubmission) => {
-    // In a real app, this would navigate to a detailed view of the submission
-    toast({
-      title: "Viewing Submission",
-      description: `Opening ${getFormTypeLabel(submission.templateId)} submission details.`,
-    });
+    setSelectedSubmission(submission);
+    setDetailsDialogOpen(true);
   };
 
   const getStatusBadge = (status: FormSubmission['status']) => {
@@ -250,6 +256,14 @@ const SubmissionsPage: React.FC = () => {
           ))}
         </TableBody>
       </Table>
+
+      <SubmissionDetailsDialog
+        submission={selectedSubmission}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        onApprove={handleApprove}
+        onReject={handleReject}
+      />
     </div>
   );
 };
