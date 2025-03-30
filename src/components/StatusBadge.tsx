@@ -74,20 +74,20 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   const { icon, label, className: statusClassName } = getStatusConfig();
   
-  // Size classes
+  // Size classes - making badges more compact
   const sizeClasses = {
-    sm: 'text-xs py-0 px-2',
-    default: 'text-xs py-0.5 px-2.5',
-    lg: 'text-sm py-1 px-3'
+    sm: 'text-xs py-0 px-1.5',
+    default: 'text-xs py-0.5 px-2',
+    lg: 'text-sm py-0.5 px-2.5'
   };
 
   return (
     <Badge 
       variant={variant as any} 
-      className={`${statusClassName} ${sizeClasses[size]} flex items-center gap-1 ${className}`}
+      className={`${statusClassName} ${sizeClasses[size]} flex items-center gap-1 rounded-full ${className}`}
     >
       {showIcon && icon}
-      {label}
+      <span className="whitespace-nowrap">{label}</span>
     </Badge>
   );
 };

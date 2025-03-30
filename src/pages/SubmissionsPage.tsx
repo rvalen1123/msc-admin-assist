@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { FormSubmission } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 import SubmissionsTable from '@/components/SubmissionsTable';
 import SubmissionDetailsDialog from '@/components/SubmissionDetailsDialog';
 import { mockSubmissions } from '@/data/submissionsData';
@@ -68,6 +71,8 @@ const SubmissionsPage: React.FC = () => {
     setDetailsDialogOpen(true);
   };
 
+  const hasPendingSubmissions = submissions.some(sub => sub.status === 'submitted');
+
   return (
     <div className="container mx-auto py-6">
       <header className="mb-6">
@@ -75,12 +80,32 @@ const SubmissionsPage: React.FC = () => {
         <p className="text-gray-600">Review and process form submissions</p>
       </header>
 
-      <SubmissionsTable
-        submissions={submissions}
-        onViewSubmission={handleView}
-        onApproveSubmission={handleApprove}
-        onRejectSubmission={handleReject}
-      />
+      {hasPendingSubmissions && (
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Attention Required</AlertTitle>
+          <AlertDescription>
+            There are submissions waiting for your review.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>Submissions</CardTitle>
+          <CardDescription>
+            Manage all form submissions in one place
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SubmissionsTable
+            submissions={submissions}
+            onViewSubmission={handleView}
+            onApproveSubmission={handleApprove}
+            onRejectSubmission={handleReject}
+          />
+        </CardContent>
+      </Card>
 
       <SubmissionDetailsDialog
         submission={selectedSubmission}

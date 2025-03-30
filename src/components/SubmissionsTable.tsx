@@ -52,37 +52,48 @@ const SubmissionsTable: React.FC<SubmissionsTableProps> = ({
       <TableCaption>List of all form submissions</TableCaption>
       <TableHeader>
         <TableRow>
-          <TableHead>ID</TableHead>
-          <TableHead>Form Type</TableHead>
+          <TableHead className="w-[70px]">ID</TableHead>
+          <TableHead className="w-[120px]">Form Type</TableHead>
           <TableHead>Submitted By</TableHead>
-          <TableHead>Date Submitted</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Actions</TableHead>
+          <TableHead className="w-[180px]">Date Submitted</TableHead>
+          <TableHead className="w-[120px]">Status</TableHead>
+          <TableHead className="w-[80px] text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {submissions.map((submission) => (
-          <TableRow key={submission.id}>
-            <TableCell className="font-medium">{submission.id}</TableCell>
-            <TableCell>{getFormTypeLabel(submission.templateId)}</TableCell>
-            <TableCell>{submission.data.customerName || submission.data.patientName || 'Unknown'}</TableCell>
-            <TableCell>{formatDate(submission.submittedAt)}</TableCell>
-            <TableCell>
-              <StatusBadge 
-                status={submission.status} 
-                size="sm" 
-              />
-            </TableCell>
-            <TableCell>
-              <SubmissionActionsMenu
-                submission={submission}
-                onView={onViewSubmission}
-                onApprove={onApproveSubmission}
-                onReject={onRejectSubmission}
-              />
+        {submissions.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={6} className="h-24 text-center">
+              No submissions found
             </TableCell>
           </TableRow>
-        ))}
+        ) : (
+          submissions.map((submission) => (
+            <TableRow key={submission.id} className="hover:bg-muted/30">
+              <TableCell className="font-medium">{submission.id}</TableCell>
+              <TableCell>{getFormTypeLabel(submission.templateId)}</TableCell>
+              <TableCell>
+                {submission.data.customerName || submission.data.patientName || 'Unknown'}
+              </TableCell>
+              <TableCell>{formatDate(submission.submittedAt)}</TableCell>
+              <TableCell>
+                <StatusBadge 
+                  status={submission.status} 
+                  size="sm" 
+                  showIcon={true}
+                />
+              </TableCell>
+              <TableCell className="text-right">
+                <SubmissionActionsMenu
+                  submission={submission}
+                  onView={onViewSubmission}
+                  onApprove={onApproveSubmission}
+                  onReject={onRejectSubmission}
+                />
+              </TableCell>
+            </TableRow>
+          ))
+        )}
       </TableBody>
     </Table>
   );
