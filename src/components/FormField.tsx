@@ -67,7 +67,11 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
             <SelectContent>
               <SelectGroup>
                 {field.options?.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                  // Ensure option.value is never an empty string
+                  <SelectItem 
+                    key={option.value} 
+                    value={option.value || `option-${option.label}`}
+                  >
                     {option.label}
                   </SelectItem>
                 ))}
@@ -88,9 +92,9 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
                   : value === option.value;
               
               return (
-                <div key={option.value} className="flex items-center space-x-2">
+                <div key={option.value || `option-${option.label}`} className="flex items-center space-x-2">
                   <Checkbox
-                    id={`${field.id}-${option.value}`}
+                    id={`${field.id}-${option.value || `option-${option.label}`}`}
                     checked={isChecked}
                     onCheckedChange={(checked) => {
                       if (field.options && field.options.length === 1 && option.value === 'true') {
@@ -99,12 +103,13 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
                       } else {
                         // Multiple checkboxes case
                         const newValue = Array.isArray(value) ? [...value] : [];
+                        const optionValue = option.value || `option-${option.label}`;
                         if (checked) {
-                          if (!newValue.includes(option.value)) {
-                            newValue.push(option.value);
+                          if (!newValue.includes(optionValue)) {
+                            newValue.push(optionValue);
                           }
                         } else {
-                          const index = newValue.indexOf(option.value);
+                          const index = newValue.indexOf(optionValue);
                           if (index !== -1) {
                             newValue.splice(index, 1);
                           }
@@ -114,7 +119,7 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
                     }}
                   />
                   <Label
-                    htmlFor={`${field.id}-${option.value}`}
+                    htmlFor={`${field.id}-${option.value || `option-${option.label}`}`}
                     className="text-sm font-normal"
                   >
                     {option.label}
@@ -133,10 +138,13 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
             className="space-y-2"
           >
             {field.options?.map((option) => (
-              <div key={option.value} className="flex items-center space-x-2">
-                <RadioGroupItem id={`${field.id}-${option.value}`} value={option.value} />
+              <div key={option.value || `option-${option.label}`} className="flex items-center space-x-2">
+                <RadioGroupItem 
+                  id={`${field.id}-${option.value || `option-${option.label}`}`} 
+                  value={option.value || `option-${option.label}`} 
+                />
                 <Label
-                  htmlFor={`${field.id}-${option.value}`}
+                  htmlFor={`${field.id}-${option.value || `option-${option.label}`}`}
                   className="text-sm font-normal"
                 >
                   {option.label}
