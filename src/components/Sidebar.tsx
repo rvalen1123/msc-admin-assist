@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sidebar as ShadcnSidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { Home, FileText, ShieldCheck, Package, Settings, BarChart3, Users, HelpCircle, ClipboardList, Briefcase } from 'lucide-react';
+import { Home, FileText, ShieldCheck, Package, Settings, BarChart3, Users, HelpCircle, ClipboardList, Briefcase, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 
@@ -33,6 +33,11 @@ const Sidebar: React.FC = () => {
     label: 'Order Forms',
     href: '/orders',
     roles: ['admin', 'customer', 'sales']
+  }, {
+    icon: ShoppingCart,
+    label: 'Products',
+    href: '/products',
+    roles: ['admin', 'sales']
   }, {
     icon: Users,
     label: 'Customers',

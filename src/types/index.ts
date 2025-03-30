@@ -31,6 +31,17 @@ export interface Product {
   manufacturerId: string;
   description?: string;
   price?: number;
+  qCode?: string;
+  nationalAsp?: number;
+  mue?: string;
+}
+
+export interface PriceHistory {
+  productId: string;
+  quarter: string;
+  price?: number;
+  nationalAsp?: number;
+  updatedAt: Date;
 }
 
 export type FormType = 'onboarding' | 'insurance' | 'order' | 'dme';
