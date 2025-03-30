@@ -16,7 +16,7 @@ import { OrderStatus } from './enums/order-status.enum';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../users/enums/user-role.enum';
 
 @ApiTags('Orders')
 @ApiBearerAuth()
@@ -26,7 +26,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  @Roles(UserRole.ADMIN, UserRole.SALES_REPRESENTATIVE)
+  @Roles(UserRole.ADMIN, UserRole.SALES)
   @ApiOperation({ summary: 'Create a new order' })
   @ApiResponse({ status: 201, description: 'Order created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input' })
@@ -37,7 +37,7 @@ export class OrdersController {
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.SALES_REPRESENTATIVE)
+  @Roles(UserRole.ADMIN, UserRole.SALES)
   @ApiOperation({ summary: 'Get all orders' })
   @ApiResponse({ status: 200, description: 'Returns all orders' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
@@ -46,7 +46,7 @@ export class OrdersController {
   }
 
   @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.SALES_REPRESENTATIVE)
+  @Roles(UserRole.ADMIN, UserRole.SALES)
   @ApiOperation({ summary: 'Get order by ID' })
   @ApiResponse({ status: 200, description: 'Returns the order' })
   @ApiResponse({ status: 403, description: 'Forbidden' })

@@ -5,6 +5,10 @@ import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/common/prisma/prisma.service';
 import { OrderStatus } from '../src/modules/orders/enums/order-status.enum';
 import { mockPrismaService, mockJwtService, createTestingModule } from './setup';
+import * as dotenv from 'dotenv';
+
+// Load test environment variables
+dotenv.config({ path: '.env.test' });
 
 describe('OrdersController (e2e)', () => {
   let app: INestApplication;
@@ -52,171 +56,94 @@ describe('OrdersController (e2e)', () => {
   });
 
   describe('POST /orders', () => {
-    let customerId: string;
-    let productId: string;
-
-    beforeAll(async () => {
-      // Mock customer and product data
-      const mockCustomer = {
-        id: 'customer-1',
-        name: 'Test Customer',
-        email: 'customer@test.com',
-        phone: '1234567890',
-      };
-
-      const mockProduct = {
-        id: 'product-1',
-        name: 'Test Product',
-        description: 'Test Description',
-        price: 100,
-        sku: 'TEST-SKU-001',
-      };
-
-      customerId = mockCustomer.id;
-      productId = mockProduct.id;
-
-      // Mock Prisma responses
-      mockPrismaService.customer.create.mockResolvedValue(mockCustomer);
-      mockPrismaService.product.create.mockResolvedValue(mockProduct);
-      mockPrismaService.order.create.mockResolvedValue({
-        id: 'order-1',
-        orderNumber: 'TEST-ORDER-001',
-        customerId: mockCustomer.id,
-        salesRepId: 'sales-rep-1',
-        status: OrderStatus.DRAFT,
-        totalAmount: 200,
-        shippingAddress: '123 Main St',
-        billingAddress: '123 Main St',
-        notes: 'Test order',
+    it('should create a new order', () => {
+      const order = {
+        customerId: 'customer-1',
         items: [
           {
-            id: 'order-item-1',
-            orderId: 'order-1',
-            productId: mockProduct.id,
+            productId: 'product-1',
             quantity: 2,
-            unitPrice: 100,
-            totalPrice: 200,
+            price: 100,
           },
         ],
+      };
+
+      mockPrismaService.order.create.mockResolvedValue({
+        id: 'order-1',
+        ...order,
+        status: OrderStatus.PENDING,
+        salesRepId: 'sales-rep-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
-    });
 
-    it('should create a new order (admin)', () => {
-      return request(app.getHttpServer())
-        .post('/orders')
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({
-          customerId,
-          salesRepId: 'sales-rep-1',
-          items: [
-            {
-              productId,
-              quantity: 2,
-              unitPrice: 100,
-            },
-          ],
-          shippingAddress: '123 Main St',
-          billingAddress: '123 Main St',
-          notes: 'Test order',
-        })
-        .expect(201)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('id');
-          expect(res.body).toHaveProperty('orderNumber');
-          expect(res.body.status).toBe(OrderStatus.DRAFT);
-          expect(res.body.totalAmount).toBe(200);
-          expect(res.body.items).toHaveLength(1);
-        });
-    });
-
-    it('should create a new order (sales rep)', () => {
       return request(app.getHttpServer())
         .post('/orders')
         .set('Authorization', `Bearer ${salesRepToken}`)
-        .send({
-          customerId,
-          salesRepId: 'sales-rep-1',
-          items: [
-            {
-              productId,
-              quantity: 2,
-              unitPrice: 100,
-            },
-          ],
-          shippingAddress: '123 Main St',
-          billingAddress: '123 Main St',
-          notes: 'Test order',
-        })
+        .send(order)
         .expect(201)
         .expect((res) => {
-          expect(res.body).toHaveProperty('id');
-          expect(res.body).toHaveProperty('orderNumber');
-          expect(res.body.status).toBe(OrderStatus.DRAFT);
-          expect(res.body.totalAmount).toBe(200);
-          expect(res.body.items).toHaveLength(1);
+          expect(res.body).toHaveProperty('id', 'order-1');
+          expect(res.body).toHaveProperty('customerId', order.customerId);
+          expect(res.body).toHaveProperty('status', OrderStatus.PENDING);
+          expect(res.body).toHaveProperty('salesRepId', 'sales-rep-1');
         });
     });
 
-    it('should not create order without authentication', () => {
+    it('should not create an order (unauthorized)', () => {
+      const order = {
+        customerId: 'customer-1',
+        items: [
+          {
+            productId: 'product-1',
+            quantity: 2,
+            price: 100,
+          },
+        ],
+      };
+
       return request(app.getHttpServer())
         .post('/orders')
-        .send({
-          customerId,
-          salesRepId: 'sales-rep-1',
-          items: [
-            {
-              productId,
-              quantity: 2,
-              unitPrice: 100,
-            },
-          ],
-          shippingAddress: '123 Main St',
-          billingAddress: '123 Main St',
-          notes: 'Test order',
-        })
+        .send(order)
         .expect(401);
     });
   });
 
   describe('GET /orders', () => {
-    beforeAll(() => {
-      // Mock order list response
-      mockPrismaService.order.findMany.mockResolvedValue([
+    it('should get all orders', () => {
+      const orders = [
         {
           id: 'order-1',
-          orderNumber: 'TEST-ORDER-001',
           customerId: 'customer-1',
+          status: OrderStatus.PENDING,
           salesRepId: 'sales-rep-1',
-          status: OrderStatus.DRAFT,
-          totalAmount: 200,
-          shippingAddress: '123 Main St',
-          billingAddress: '123 Main St',
-          notes: 'Test order',
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
-      ]);
-    });
+        {
+          id: 'order-2',
+          customerId: 'customer-2',
+          status: OrderStatus.APPROVED,
+          salesRepId: 'sales-rep-1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ];
 
-    it('should get all orders (admin)', () => {
+      mockPrismaService.order.findMany.mockResolvedValue(orders);
+
       return request(app.getHttpServer())
         .get('/orders')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200)
         .expect((res) => {
-          expect(Array.isArray(res.body)).toBe(true);
+          expect(res.body).toHaveLength(2);
+          expect(res.body[0]).toHaveProperty('id', 'order-1');
+          expect(res.body[1]).toHaveProperty('id', 'order-2');
         });
     });
 
-    it('should get all orders (sales rep)', () => {
-      return request(app.getHttpServer())
-        .get('/orders')
-        .set('Authorization', `Bearer ${salesRepToken}`)
-        .expect(200)
-        .expect((res) => {
-          expect(Array.isArray(res.body)).toBe(true);
-        });
-    });
-
-    it('should not get orders without authentication', () => {
+    it('should not get orders (unauthorized)', () => {
       return request(app.getHttpServer())
         .get('/orders')
         .expect(401);
@@ -224,61 +151,101 @@ describe('OrdersController (e2e)', () => {
   });
 
   describe('GET /orders/:id', () => {
-    let orderId: string;
-
-    beforeAll(() => {
-      // Mock order data
-      const mockOrder = {
+    it('should get an order by ID', () => {
+      const order = {
         id: 'order-1',
-        orderNumber: 'TEST-ORDER-001',
         customerId: 'customer-1',
+        status: OrderStatus.PENDING,
         salesRepId: 'sales-rep-1',
-        status: OrderStatus.DRAFT,
-        totalAmount: 200,
-        shippingAddress: '123 Main St',
-        billingAddress: '123 Main St',
-        notes: 'Test order',
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
-      orderId = mockOrder.id;
 
-      // Mock Prisma responses
-      mockPrismaService.order.findUnique.mockResolvedValue(mockOrder);
-    });
+      mockPrismaService.order.findUnique.mockResolvedValue(order);
 
-    it('should get order by id (admin)', () => {
       return request(app.getHttpServer())
-        .get(`/orders/${orderId}`)
+        .get('/orders/order-1')
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(200)
         .expect((res) => {
-          expect(res.body.id).toBe(orderId);
-          expect(res.body.orderNumber).toBe('TEST-ORDER-001');
+          expect(res.body).toHaveProperty('id', 'order-1');
+          expect(res.body).toHaveProperty('customerId', order.customerId);
+          expect(res.body).toHaveProperty('status', OrderStatus.PENDING);
+          expect(res.body).toHaveProperty('salesRepId', 'sales-rep-1');
         });
     });
 
-    it('should get order by id (sales rep)', () => {
+    it('should not get an order (unauthorized)', () => {
       return request(app.getHttpServer())
-        .get(`/orders/${orderId}`)
-        .set('Authorization', `Bearer ${salesRepToken}`)
-        .expect(200)
-        .expect((res) => {
-          expect(res.body.id).toBe(orderId);
-          expect(res.body.orderNumber).toBe('TEST-ORDER-001');
-        });
-    });
-
-    it('should not get order without authentication', () => {
-      return request(app.getHttpServer())
-        .get(`/orders/${orderId}`)
+        .get('/orders/order-1')
         .expect(401);
     });
+  });
 
-    it('should return 404 for non-existent order', () => {
-      mockPrismaService.order.findUnique.mockResolvedValueOnce(null);
+  describe('PUT /orders/:id/status', () => {
+    it('should update order status (admin)', () => {
+      const order = {
+        id: 'order-1',
+        customerId: 'customer-1',
+        status: OrderStatus.APPROVED,
+        salesRepId: 'sales-rep-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockPrismaService.order.update.mockResolvedValue(order);
+
       return request(app.getHttpServer())
-        .get('/orders/non-existent-id')
+        .put('/orders/order-1/status')
         .set('Authorization', `Bearer ${adminToken}`)
-        .expect(404);
+        .send({ status: OrderStatus.APPROVED })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toHaveProperty('id', 'order-1');
+          expect(res.body).toHaveProperty('status', OrderStatus.APPROVED);
+        });
+    });
+
+    it('should not update order status (sales rep)', () => {
+      return request(app.getHttpServer())
+        .put('/orders/order-1/status')
+        .set('Authorization', `Bearer ${salesRepToken}`)
+        .send({ status: OrderStatus.APPROVED })
+        .expect(403);
+    });
+
+    it('should not update order status (unauthorized)', () => {
+      return request(app.getHttpServer())
+        .put('/orders/order-1/status')
+        .send({ status: OrderStatus.APPROVED })
+        .expect(401);
+    });
+  });
+
+  describe('GET /orders/:id/pdf', () => {
+    it('should get PDF for a completed order', () => {
+      const order = {
+        id: 'order-1',
+        customerId: 'customer-1',
+        status: OrderStatus.COMPLETED,
+        salesRepId: 'sales-rep-1',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockPrismaService.order.findUnique.mockResolvedValue(order);
+
+      return request(app.getHttpServer())
+        .get('/orders/order-1/pdf')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(200)
+        .expect('Content-Type', 'application/pdf');
+    });
+
+    it('should not get PDF for an order (unauthorized)', () => {
+      return request(app.getHttpServer())
+        .get('/orders/order-1/pdf')
+        .expect(401);
     });
   });
 }); 

@@ -2,6 +2,10 @@ import { PrismaClient } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import * as dotenv from 'dotenv';
+
+// Load test environment variables
+dotenv.config({ path: '.env.test' });
 
 export const mockPrismaService = {
   user: {
@@ -88,13 +92,13 @@ export const mockConfigService = {
     const config = {
       'DOCUSEAL_API_KEY': 'test-api-key',
       'DOCUSEAL_API_URL': 'https://test.docuseal.co',
-      'AZURE_SQL_CONNECTION_STRING': 'test-connection-string',
-      'JWT_SECRET': 'test-secret',
-      'JWT_EXPIRATION': '1h',
-      'AZURE_STORAGE_CONNECTION_STRING': 'test-storage-connection',
-      'AZURE_STORAGE_CONTAINER': 'test-container',
-      'SENDGRID_API_KEY': 'test-sendgrid-key',
-      'REDIS_URL': 'redis://localhost:6379',
+      'AZURE_SQL_CONNECTION_STRING': process.env.AZURE_SQL_CONNECTION_STRING,
+      'JWT_SECRET': process.env.JWT_SECRET,
+      'JWT_EXPIRATION': process.env.JWT_EXPIRATION,
+      'AZURE_STORAGE_CONNECTION_STRING': process.env.AZURE_STORAGE_CONNECTION_STRING,
+      'AZURE_STORAGE_CONTAINER': process.env.AZURE_STORAGE_CONTAINER,
+      'SENDGRID_API_KEY': process.env.SENDGRID_API_KEY,
+      'REDIS_URL': process.env.REDIS_URL,
     };
     return config[key];
   }),

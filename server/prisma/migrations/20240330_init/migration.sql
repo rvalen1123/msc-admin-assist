@@ -1,14 +1,9 @@
--- CreateEnum
-CREATE TYPE [dbo].[UserRole] AS ENUM ('ADMIN', 'CUSTOMER', 'SALES');
-CREATE TYPE [dbo].[SubmissionStatus] AS ENUM ('DRAFT', 'SUBMITTED', 'PROCESSING', 'COMPLETED', 'REJECTED');
-CREATE TYPE [dbo].[OrderStatus] AS ENUM ('DRAFT', 'PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED', 'REFUNDED');
-
 -- CreateTable
 CREATE TABLE [dbo].[User] (
     [id] NVARCHAR(450) NOT NULL,
     [email] NVARCHAR(450) NOT NULL,
     [passwordHash] NVARCHAR(MAX) NOT NULL,
-    [role] NVARCHAR(MAX) NOT NULL,
+    [role] NVARCHAR(20) NOT NULL,
     [firstName] NVARCHAR(MAX),
     [lastName] NVARCHAR(MAX),
     [company] NVARCHAR(MAX),
@@ -20,10 +15,10 @@ CREATE TABLE [dbo].[User] (
 -- CreateTable
 CREATE TABLE [dbo].[Customer] (
     [id] NVARCHAR(450) NOT NULL,
-    [name] NVARCHAR(MAX) NOT NULL,
+    [name] NVARCHAR(450) NOT NULL,
     [email] NVARCHAR(450) NOT NULL,
     [phone] NVARCHAR(MAX),
-    [company] NVARCHAR(MAX),
+    [company] NVARCHAR(450),
     [addressLine1] NVARCHAR(MAX),
     [addressLine2] NVARCHAR(MAX),
     [city] NVARCHAR(MAX),
@@ -41,7 +36,7 @@ CREATE TABLE [dbo].[CustomerContact] (
     [customerId] NVARCHAR(450) NOT NULL,
     [name] NVARCHAR(MAX) NOT NULL,
     [title] NVARCHAR(MAX),
-    [email] NVARCHAR(MAX),
+    [email] NVARCHAR(450),
     [phone] NVARCHAR(MAX),
     [isPrimary] BIT NOT NULL DEFAULT 0,
     [createdAt] DATETIME2 NOT NULL DEFAULT GETDATE(),
@@ -51,11 +46,11 @@ CREATE TABLE [dbo].[CustomerContact] (
 -- CreateTable
 CREATE TABLE [dbo].[Product] (
     [id] NVARCHAR(450) NOT NULL,
-    [name] NVARCHAR(MAX) NOT NULL,
+    [name] NVARCHAR(450) NOT NULL,
     [manufacturerId] NVARCHAR(450) NOT NULL,
     [description] NVARCHAR(MAX),
     [price] FLOAT,
-    [qCode] NVARCHAR(MAX),
+    [qCode] NVARCHAR(450),
     [nationalAsp] FLOAT,
     [mue] NVARCHAR(MAX),
     [createdAt] DATETIME2 NOT NULL DEFAULT GETDATE(),
@@ -66,7 +61,7 @@ CREATE TABLE [dbo].[Product] (
 -- CreateTable
 CREATE TABLE [dbo].[Manufacturer] (
     [id] NVARCHAR(450) NOT NULL,
-    [name] NVARCHAR(MAX) NOT NULL,
+    [name] NVARCHAR(450) NOT NULL,
     [logoUrl] NVARCHAR(MAX),
     [createdAt] DATETIME2 NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_Manufacturer] PRIMARY KEY CLUSTERED ([id])
@@ -76,8 +71,8 @@ CREATE TABLE [dbo].[Manufacturer] (
 CREATE TABLE [dbo].[SalesRep] (
     [id] NVARCHAR(450) NOT NULL,
     [userId] NVARCHAR(450) NOT NULL,
-    [territory] NVARCHAR(MAX),
-    [region] NVARCHAR(MAX),
+    [territory] NVARCHAR(450),
+    [region] NVARCHAR(450),
     [active] BIT NOT NULL DEFAULT 1,
     [createdAt] DATETIME2 NOT NULL DEFAULT GETDATE(),
     CONSTRAINT [PK_SalesRep] PRIMARY KEY CLUSTERED ([id])
@@ -86,7 +81,7 @@ CREATE TABLE [dbo].[SalesRep] (
 -- CreateTable
 CREATE TABLE [dbo].[FormTemplate] (
     [id] NVARCHAR(450) NOT NULL,
-    [type] NVARCHAR(MAX) NOT NULL,
+    [type] NVARCHAR(450) NOT NULL,
     [title] NVARCHAR(MAX) NOT NULL,
     [description] NVARCHAR(MAX),
     [schema] NVARCHAR(MAX) NOT NULL,
@@ -102,7 +97,7 @@ CREATE TABLE [dbo].[FormSubmission] (
     [userId] NVARCHAR(450) NOT NULL,
     [customerId] NVARCHAR(450) NOT NULL,
     [data] NVARCHAR(MAX) NOT NULL,
-    [status] NVARCHAR(MAX) NOT NULL,
+    [status] NVARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     [submittedAt] DATETIME2,
     [completedAt] DATETIME2,
     [pdfUrl] NVARCHAR(MAX),
@@ -116,7 +111,7 @@ CREATE TABLE [dbo].[Order] (
     [orderNumber] NVARCHAR(450) NOT NULL,
     [customerId] NVARCHAR(450) NOT NULL,
     [salesRepId] NVARCHAR(450) NOT NULL,
-    [status] NVARCHAR(MAX) NOT NULL DEFAULT 'DRAFT',
+    [status] NVARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     [totalAmount] FLOAT NOT NULL,
     [shippingAddress] NVARCHAR(MAX) NOT NULL,
     [billingAddress] NVARCHAR(MAX) NOT NULL,
@@ -147,7 +142,7 @@ CREATE TABLE [dbo].[OrderItem] (
 CREATE TABLE [dbo].[PriceHistory] (
     [id] NVARCHAR(450) NOT NULL,
     [productId] NVARCHAR(450) NOT NULL,
-    [quarter] NVARCHAR(MAX) NOT NULL,
+    [quarter] NVARCHAR(450) NOT NULL,
     [price] FLOAT,
     [nationalAsp] FLOAT,
     [updatedAt] DATETIME2 NOT NULL,

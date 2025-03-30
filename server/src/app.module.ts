@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule } from '@nestjs/throttler';
@@ -28,25 +27,6 @@ import { CommonModule } from './modules/common/common.module';
       ttl: 60, // 1 minute
       limit: 100, // 100 requests per minute
     }]),
-
-    // Database
-    TypeOrmModule.forRoot({
-      type: 'mssql',
-      host: process.env.AZURE_SQL_HOST,
-      port: parseInt(process.env.AZURE_SQL_PORT || '1433'),
-      username: process.env.AZURE_SQL_USERNAME,
-      password: process.env.AZURE_SQL_PASSWORD,
-      database: process.env.AZURE_SQL_DATABASE,
-      options: {
-        encrypt: true, // For Azure SQL
-        trustServerCertificate: false, // For Azure SQL
-        enableArithAbort: true,
-        connectTimeout: 30000, // 30 seconds
-      },
-      autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production',
-      logging: process.env.NODE_ENV === 'development',
-    }),
 
     // Task Scheduling
     ScheduleModule.forRoot(),

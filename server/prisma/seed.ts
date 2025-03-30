@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, OrderStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -23,7 +23,7 @@ async function main() {
     data: {
       email: 'admin@test.com',
       passwordHash: adminPasswordHash,
-      role: UserRole.ADMIN,
+      role: 'ADMIN',
       firstName: 'Admin',
       lastName: 'User',
     },
@@ -35,7 +35,7 @@ async function main() {
     data: {
       email: 'salesrep1@test.com',
       passwordHash: salesRepPasswordHash,
-      role: UserRole.SALES,
+      role: 'SALES',
       firstName: 'John',
       lastName: 'Doe',
       company: 'MSC Wound Care',
@@ -46,7 +46,7 @@ async function main() {
     data: {
       email: 'salesrep2@test.com',
       passwordHash: salesRepPasswordHash,
-      role: UserRole.SALES,
+      role: 'SALES',
       firstName: 'Jane',
       lastName: 'Smith',
       company: 'MSC Wound Care',
@@ -72,183 +72,73 @@ async function main() {
     },
   });
 
-  // Create manufacturers
-  const manufacturer1 = await prisma.manufacturer.create({
+  // Create sample manufacturer
+  const manufacturer = await prisma.manufacturer.create({
     data: {
-      name: 'Smith & Nephew',
-      logoUrl: 'https://example.com/smith-nephew-logo.png',
+      name: 'Sample Manufacturer',
+      logoUrl: 'https://example.com/logo.png',
     },
   });
 
-  const manufacturer2 = await prisma.manufacturer.create({
-    data: {
-      name: '3M Health Care',
-      logoUrl: 'https://example.com/3m-logo.png',
-    },
-  });
-
-  // Create products
+  // Create sample products
   const product1 = await prisma.product.create({
     data: {
-      name: 'Advanced Wound Dressing',
-      manufacturerId: manufacturer1.id,
-      description: 'Advanced wound care dressing with antimicrobial properties',
-      price: 150.00,
-      qCode: 'AWD001',
-      nationalAsp: 175.00,
-      mue: '1',
+      name: 'Sample Product 1',
+      manufacturerId: manufacturer.id,
+      description: 'A sample wound care product',
+      price: 99.99,
+      qCode: 'Q4001',
+      nationalAsp: 89.99,
+      mue: '10 units per month',
     },
   });
 
   const product2 = await prisma.product.create({
     data: {
-      name: 'Compression Bandage',
-      manufacturerId: manufacturer2.id,
-      description: 'High-quality compression bandage for wound care',
-      price: 75.00,
-      qCode: 'CB001',
-      nationalAsp: 85.00,
-      mue: '2',
+      name: 'Sample Product 2',
+      manufacturerId: manufacturer.id,
+      description: 'Another sample wound care product',
+      price: 149.99,
+      qCode: 'Q4002',
+      nationalAsp: 139.99,
+      mue: '5 units per month',
     },
   });
 
-  // Create price history
-  await prisma.priceHistory.create({
+  // Create sample customer
+  const customer = await prisma.customer.create({
     data: {
-      productId: product1.id,
-      quarter: 'Q1-2024',
-      price: 150.00,
-      nationalAsp: 175.00,
-    },
-  });
-
-  await prisma.priceHistory.create({
-    data: {
-      productId: product2.id,
-      quarter: 'Q1-2024',
-      price: 75.00,
-      nationalAsp: 85.00,
-    },
-  });
-
-  // Create customers
-  const customer1 = await prisma.customer.create({
-    data: {
-      name: 'Acme Medical Center',
-      email: 'orders@acmemedical.com',
+      name: 'Sample Medical Center',
+      email: 'info@samplemedical.com',
       phone: '555-0123',
-      company: 'Acme Medical Center',
-      addressLine1: '123 Medical Plaza',
-      city: 'New York',
+      company: 'Sample Medical Group',
+      addressLine1: '123 Medical Way',
+      city: 'Sample City',
       state: 'NY',
-      zipCode: '10001',
+      zipCode: '12345',
       country: 'USA',
     },
   });
 
-  const customer2 = await prisma.customer.create({
+  // Create customer contact
+  await prisma.customerContact.create({
     data: {
-      name: 'City Hospital',
-      email: 'supplies@cityhospital.com',
+      customerId: customer.id,
+      name: 'John Contact',
+      title: 'Purchasing Manager',
+      email: 'john@samplemedical.com',
       phone: '555-0124',
-      company: 'City Hospital',
-      addressLine1: '456 Healthcare Ave',
-      city: 'Los Angeles',
-      state: 'CA',
-      zipCode: '90001',
-      country: 'USA',
-    },
-  });
-
-  // Create customer contacts
-  await prisma.customerContact.create({
-    data: {
-      customerId: customer1.id,
-      name: 'Dr. Sarah Johnson',
-      title: 'Medical Director',
-      email: 'sarah.johnson@acmemedical.com',
-      phone: '555-0125',
       isPrimary: true,
     },
   });
 
-  await prisma.customerContact.create({
-    data: {
-      customerId: customer2.id,
-      name: 'Dr. Michael Chen',
-      title: 'Chief of Surgery',
-      email: 'michael.chen@cityhospital.com',
-      phone: '555-0126',
-      isPrimary: true,
-    },
-  });
-
-  // Create orders
-  const order1 = await prisma.order.create({
-    data: {
-      orderNumber: 'ORD2403300001',
-      customerId: customer1.id,
-      salesRepId: salesRep1.id,
-      status: OrderStatus.CONFIRMED,
-      totalAmount: 450.00,
-      shippingAddress: '123 Medical Plaza, New York, NY 10001',
-      billingAddress: '123 Medical Plaza, New York, NY 10001',
-      notes: 'Urgent order for wound care supplies',
-      items: {
-        create: [
-          {
-            productId: product1.id,
-            quantity: 2,
-            unitPrice: 150.00,
-            totalPrice: 300.00,
-          },
-          {
-            productId: product2.id,
-            quantity: 2,
-            unitPrice: 75.00,
-            totalPrice: 150.00,
-          },
-        ],
-      },
-    },
-  });
-
-  const order2 = await prisma.order.create({
-    data: {
-      orderNumber: 'ORD2403300002',
-      customerId: customer2.id,
-      salesRepId: salesRep2.id,
-      status: OrderStatus.PENDING,
-      totalAmount: 225.00,
-      shippingAddress: '456 Healthcare Ave, Los Angeles, CA 90001',
-      billingAddress: '456 Healthcare Ave, Los Angeles, CA 90001',
-      notes: 'Regular supply order',
-      items: {
-        create: [
-          {
-            productId: product1.id,
-            quantity: 1,
-            unitPrice: 150.00,
-            totalPrice: 150.00,
-          },
-          {
-            productId: product2.id,
-            quantity: 1,
-            unitPrice: 75.00,
-            totalPrice: 75.00,
-          },
-        ],
-      },
-    },
-  });
-
-  // Create form templates
-  const formTemplate1 = await prisma.formTemplate.create({
+  // Create sample form template
+  const formTemplate = await prisma.formTemplate.create({
     data: {
       type: 'WOUND_ASSESSMENT',
       title: 'Wound Assessment Form',
-      description: 'Standard wound assessment form for medical professionals',
-      schema: {
+      description: 'Standard wound assessment form',
+      schema: JSON.stringify({
         fields: [
           {
             name: 'woundLocation',
@@ -257,41 +147,65 @@ async function main() {
             required: true,
           },
           {
-            name: 'woundSize',
-            label: 'Wound Size (cm)',
-            type: 'number',
-            required: true,
-          },
-          {
             name: 'woundType',
             label: 'Wound Type',
             type: 'select',
-            options: ['Acute', 'Chronic', 'Surgical', 'Other'],
+            options: ['Pressure Ulcer', 'Diabetic Ulcer', 'Venous Ulcer', 'Surgical Wound'],
             required: true,
+          },
+        ],
+      }),
+    },
+  });
+
+  // Create sample form submission
+  await prisma.formSubmission.create({
+    data: {
+      templateId: formTemplate.id,
+      userId: salesRep1.id,
+      customerId: customer.id,
+      status: 'COMPLETED',
+      data: JSON.stringify({
+        woundLocation: 'Left heel',
+        woundType: 'Pressure Ulcer',
+      }),
+      submittedAt: new Date(),
+      completedAt: new Date(),
+      pdfUrl: 'https://example.com/submission.pdf',
+    },
+  });
+
+  // Create sample order
+  await prisma.order.create({
+    data: {
+      orderNumber: 'ORD-2024-001',
+      customerId: customer.id,
+      salesRepId: salesRep1.id,
+      status: 'CONFIRMED',
+      totalAmount: 349.97,
+      shippingAddress: '123 Medical Way, Sample City, NY 12345',
+      billingAddress: '123 Medical Way, Sample City, NY 12345',
+      notes: 'Sample order notes',
+      items: {
+        create: [
+          {
+            productId: product1.id,
+            quantity: 2,
+            unitPrice: 99.99,
+            totalPrice: 199.98,
+          },
+          {
+            productId: product2.id,
+            quantity: 1,
+            unitPrice: 149.99,
+            totalPrice: 149.99,
           },
         ],
       },
     },
   });
 
-  // Create form submissions
-  await prisma.formSubmission.create({
-    data: {
-      templateId: formTemplate1.id,
-      userId: salesRep1.id,
-      customerId: customer1.id,
-      data: {
-        woundLocation: 'Left leg',
-        woundSize: 5.2,
-        woundType: 'Chronic',
-      },
-      status: 'COMPLETED',
-      submittedAt: new Date(),
-      completedAt: new Date(),
-    },
-  });
-
-  console.log('Seed data created successfully');
+  console.log('Database has been seeded!');
 }
 
 main()

@@ -1,6 +1,6 @@
-import { IsString, IsNotEmpty, IsObject, ValidateNested, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsObject, ValidateNested, IsOptional, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
-import { SubmissionStatus } from '@prisma/client';
+import { SubmissionStatus } from '../enums/submission-status.enum';
 
 export class CreateFormSubmissionDto {
   @IsString()
@@ -16,7 +16,7 @@ export class CreateFormSubmissionDto {
   @Type(() => Object)
   data: Record<string, any>;
 
-  @IsString()
+  @IsEnum(SubmissionStatus)
   @IsOptional()
   status?: SubmissionStatus;
 } 

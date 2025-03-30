@@ -3,7 +3,6 @@ import { PrismaService } from '../../common/prisma/prisma.service';
 import { DocusealService } from './docuseal.service';
 import { CreateFormTemplateDto } from './dto/create-form-template.dto';
 import { CreateFormSubmissionDto } from './dto/create-form-submission.dto';
-import { SubmissionStatus } from '@prisma/client';
 
 @Injectable()
 export class FormsService {
@@ -16,18 +15,26 @@ export class FormsService {
 
   async createTemplate(createFormTemplateDto: CreateFormTemplateDto) {
     return this.prisma.formTemplate.create({
-      data: createFormTemplateDto,
+      data: {
+        ...createFormTemplateDto,
+        schema: JSON.stringify(createFormTemplateDto.schema),
+      },
     });
   }
 
   async findAllTemplates() {
-    return this.prisma.formTemplate.findMany({
+    const templates = await this.prisma.formTemplate.findMany({
       include: {
         _count: {
           select: { submissions: true },
         },
       },
     });
+
+    return templates.map(template => ({
+      ...template,
+      schema: JSON.parse(template.schema),
+    }));
   }
 
   async findTemplateById(id: string) {
@@ -47,16 +54,25 @@ export class FormsService {
       throw new NotFoundException(`Form template with ID ${id} not found`);
     }
 
-    return template;
+    return {
+      ...template,
+      schema: JSON.parse(template.schema),
+      submissions: template.submissions.map(submission => ({
+        ...submission,
+        data: JSON.parse(submission.data),
+      })),
+    };
   }
 
   async createSubmission(createFormSubmissionDto: CreateFormSubmissionDto, userId: string) {
     // Create the form submission in our database
     const submission = await this.prisma.formSubmission.create({
       data: {
-        ...createFormSubmissionDto,
+        templateId: createFormSubmissionDto.templateId,
+        customerId: createFormSubmissionDto.customerId,
         userId,
-        status: SubmissionStatus.DRAFT,
+        data: JSON.stringify(createFormSubmissionDto.data),
+        status: 'DRAFT',
       },
       include: {
         template: true,
@@ -69,14 +85,14 @@ export class FormsService {
       // Create the submission in DocuSeal
       const docusealSubmission = await this.docusealService.createSubmission(
         submission.templateId,
-        submission.data,
+        JSON.parse(submission.data),
       );
 
       // Update the submission with DocuSeal ID and status
       return this.prisma.formSubmission.update({
         where: { id: submission.id },
         data: {
-          status: SubmissionStatus.PROCESSING,
+          status: 'PROCESSING',
           submittedAt: new Date(),
         },
         include: {
@@ -91,7 +107,7 @@ export class FormsService {
       await this.prisma.formSubmission.update({
         where: { id: submission.id },
         data: {
-          status: SubmissionStatus.REJECTED,
+          status: 'REJECTED',
         },
       });
       throw error;
@@ -112,25 +128,41 @@ export class FormsService {
       throw new NotFoundException(`Form submission with ID ${id} not found`);
     }
 
-    return submission;
+    return {
+      ...submission,
+      data: JSON.parse(submission.data),
+      template: {
+        ...submission.template,
+        schema: JSON.parse(submission.template.schema),
+      },
+    };
   }
 
   async findAllSubmissions() {
-    return this.prisma.formSubmission.findMany({
+    const submissions = await this.prisma.formSubmission.findMany({
       include: {
         template: true,
         user: true,
         customer: true,
       },
     });
+
+    return submissions.map(submission => ({
+      ...submission,
+      data: JSON.parse(submission.data),
+      template: {
+        ...submission.template,
+        schema: JSON.parse(submission.template.schema),
+      },
+    }));
   }
 
-  async updateSubmissionStatus(id: string, status: SubmissionStatus) {
+  async updateSubmissionStatus(id: string, status: string) {
     const submission = await this.prisma.formSubmission.update({
       where: { id },
       data: {
         status,
-        completedAt: status === SubmissionStatus.COMPLETED ? new Date() : null,
+        completedAt: status === 'COMPLETED' ? new Date() : null,
       },
       include: {
         template: true,
@@ -139,13 +171,20 @@ export class FormsService {
       },
     });
 
-    return submission;
+    return {
+      ...submission,
+      data: JSON.parse(submission.data),
+      template: {
+        ...submission.template,
+        schema: JSON.parse(submission.template.schema),
+      },
+    };
   }
 
   async getSubmissionPdf(id: string) {
     const submission = await this.findSubmissionById(id);
     
-    if (submission.status !== SubmissionStatus.COMPLETED) {
+    if (submission.status !== 'COMPLETED') {
       throw new Error('Submission is not completed');
     }
 
