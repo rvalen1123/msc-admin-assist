@@ -44,8 +44,8 @@ describe('FormsController (e2e)', () => {
     });
 
     // Get tokens using mocked JWT service
-    adminToken = mockJwtService.sign();
-    salesRepToken = mockJwtService.sign();
+    adminToken = mockJwtService.sign({ sub: 'admin-1', email: 'admin@test.com', role: 'ADMIN' });
+    salesRepToken = mockJwtService.sign({ sub: 'sales-rep-1', email: 'salesrep@test.com', role: 'SALES' });
   });
 
   afterAll(async () => {
@@ -57,7 +57,7 @@ describe('FormsController (e2e)', () => {
   describe('POST /forms/templates', () => {
     it('should create a new form template (admin)', () => {
       const template = {
-        name: 'Test Template',
+        title: 'Test Template',
         type: 'ORDER',
         schema: {
           fields: [
@@ -85,7 +85,7 @@ describe('FormsController (e2e)', () => {
         .expect(201)
         .expect((res) => {
           expect(res.body).toHaveProperty('id', 'template-1');
-          expect(res.body).toHaveProperty('name', template.name);
+          expect(res.body).toHaveProperty('title', template.title);
           expect(res.body).toHaveProperty('type', template.type);
           expect(res.body).toHaveProperty('schema');
         });
@@ -93,7 +93,7 @@ describe('FormsController (e2e)', () => {
 
     it('should not create a form template (sales rep)', () => {
       const template = {
-        name: 'Test Template',
+        title: 'Test Template',
         type: 'ORDER',
         schema: {
           fields: [
@@ -115,7 +115,7 @@ describe('FormsController (e2e)', () => {
 
     it('should not create a form template (unauthorized)', () => {
       const template = {
-        name: 'Test Template',
+        title: 'Test Template',
         type: 'ORDER',
         schema: {
           fields: [
@@ -140,7 +140,7 @@ describe('FormsController (e2e)', () => {
       const templates = [
         {
           id: 'template-1',
-          name: 'Test Template 1',
+          title: 'Test Template 1',
           type: 'ORDER',
           schema: JSON.stringify({
             fields: [
@@ -156,7 +156,7 @@ describe('FormsController (e2e)', () => {
         },
         {
           id: 'template-2',
-          name: 'Test Template 2',
+          title: 'Test Template 2',
           type: 'ORDER',
           schema: JSON.stringify({
             fields: [
@@ -196,7 +196,7 @@ describe('FormsController (e2e)', () => {
     it('should get a form template by ID', () => {
       const template = {
         id: 'template-1',
-        name: 'Test Template',
+        title: 'Test Template',
         type: 'ORDER',
         schema: JSON.stringify({
           fields: [
@@ -219,7 +219,7 @@ describe('FormsController (e2e)', () => {
         .expect(200)
         .expect((res) => {
           expect(res.body).toHaveProperty('id', 'template-1');
-          expect(res.body).toHaveProperty('name', template.name);
+          expect(res.body).toHaveProperty('title', template.title);
           expect(res.body).toHaveProperty('type', template.type);
           expect(res.body).toHaveProperty('schema');
         });
@@ -234,6 +234,23 @@ describe('FormsController (e2e)', () => {
 
   describe('POST /forms/submissions', () => {
     it('should create a new form submission', () => {
+      const template = {
+        id: 'template-1',
+        title: 'Test Template',
+        type: 'ORDER',
+        schema: JSON.stringify({
+          fields: [
+            {
+              name: 'test',
+              type: 'text',
+              label: 'Test Field',
+            },
+          ],
+        }),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
       const submission = {
         templateId: 'template-1',
         customerId: 'customer-1',
@@ -242,6 +259,9 @@ describe('FormsController (e2e)', () => {
         },
       };
 
+      // Mock template exists
+      mockPrismaService.formTemplate.findUnique.mockResolvedValue(template);
+
       mockPrismaService.formSubmission.create.mockResolvedValue({
         id: 'submission-1',
         ...submission,
@@ -249,7 +269,9 @@ describe('FormsController (e2e)', () => {
         status: 'DRAFT',
         userId: 'sales-rep-1',
         createdAt: new Date(),
-        updatedAt: new Date(),
+        template,
+        user: { id: 'sales-rep-1', email: 'salesrep@test.com', role: 'SALES' },
+        customer: { id: 'customer-1', name: 'Test Customer' },
       });
 
       return request(app.getHttpServer())

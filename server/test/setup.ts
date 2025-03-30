@@ -104,9 +104,15 @@ export const mockConfigService = {
   }),
 };
 
+// Create a real JWT service instance for testing
+const jwtService = new JwtService({
+  secret: process.env.JWT_SECRET,
+  signOptions: { expiresIn: process.env.JWT_EXPIRATION },
+});
+
 export const mockJwtService = {
-  sign: jest.fn().mockReturnValue('mock-jwt-token'),
-  verify: jest.fn().mockReturnValue({ sub: 'mock-user-id' }),
+  sign: jest.fn((payload: any) => jwtService.sign(payload)),
+  verify: jest.fn((token: string) => jwtService.verify(token)),
 };
 
 export const createTestingModule = async (module: any) => {

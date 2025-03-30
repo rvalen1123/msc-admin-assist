@@ -45,8 +45,8 @@ describe('OrdersController (e2e)', () => {
     });
 
     // Get tokens using mocked JWT service
-    adminToken = mockJwtService.sign();
-    salesRepToken = mockJwtService.sign();
+    adminToken = mockJwtService.sign({ sub: 'admin-1', email: 'admin@test.com', role: 'ADMIN' });
+    salesRepToken = mockJwtService.sign({ sub: 'sales-rep-1', email: 'salesrep@test.com', role: 'SALES' });
   });
 
   afterAll(async () => {
@@ -123,7 +123,7 @@ describe('OrdersController (e2e)', () => {
         {
           id: 'order-2',
           customerId: 'customer-2',
-          status: OrderStatus.APPROVED,
+          status: OrderStatus.CONFIRMED,
           salesRepId: 'sales-rep-1',
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -155,7 +155,7 @@ describe('OrdersController (e2e)', () => {
       const order = {
         id: 'order-1',
         customerId: 'customer-1',
-        status: OrderStatus.PENDING,
+        status: OrderStatus.CONFIRMED,
         salesRepId: 'sales-rep-1',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -170,7 +170,7 @@ describe('OrdersController (e2e)', () => {
         .expect((res) => {
           expect(res.body).toHaveProperty('id', 'order-1');
           expect(res.body).toHaveProperty('customerId', order.customerId);
-          expect(res.body).toHaveProperty('status', OrderStatus.PENDING);
+          expect(res.body).toHaveProperty('status', OrderStatus.CONFIRMED);
           expect(res.body).toHaveProperty('salesRepId', 'sales-rep-1');
         });
     });
@@ -187,7 +187,7 @@ describe('OrdersController (e2e)', () => {
       const order = {
         id: 'order-1',
         customerId: 'customer-1',
-        status: OrderStatus.APPROVED,
+        status: OrderStatus.CONFIRMED,
         salesRepId: 'sales-rep-1',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -198,11 +198,11 @@ describe('OrdersController (e2e)', () => {
       return request(app.getHttpServer())
         .put('/orders/order-1/status')
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ status: OrderStatus.APPROVED })
+        .send({ status: OrderStatus.CONFIRMED })
         .expect(200)
         .expect((res) => {
           expect(res.body).toHaveProperty('id', 'order-1');
-          expect(res.body).toHaveProperty('status', OrderStatus.APPROVED);
+          expect(res.body).toHaveProperty('status', OrderStatus.CONFIRMED);
         });
     });
 
@@ -210,14 +210,14 @@ describe('OrdersController (e2e)', () => {
       return request(app.getHttpServer())
         .put('/orders/order-1/status')
         .set('Authorization', `Bearer ${salesRepToken}`)
-        .send({ status: OrderStatus.APPROVED })
+        .send({ status: OrderStatus.CONFIRMED })
         .expect(403);
     });
 
     it('should not update order status (unauthorized)', () => {
       return request(app.getHttpServer())
         .put('/orders/order-1/status')
-        .send({ status: OrderStatus.APPROVED })
+        .send({ status: OrderStatus.CONFIRMED })
         .expect(401);
     });
   });
@@ -227,7 +227,7 @@ describe('OrdersController (e2e)', () => {
       const order = {
         id: 'order-1',
         customerId: 'customer-1',
-        status: OrderStatus.COMPLETED,
+        status: OrderStatus.DELIVERED,
         salesRepId: 'sales-rep-1',
         createdAt: new Date(),
         updatedAt: new Date(),
