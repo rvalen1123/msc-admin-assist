@@ -50,7 +50,7 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
       case 'date':
         return (
           <Input
-            type={field.type === 'date' ? 'date' : field.type === 'phone' ? 'tel' : field.type === 'number' ? 'number' : field.type}
+            type={field.type === 'date' ? 'date' : field.type === 'phone' ? 'tel' : field.type === 'number' ? 'number' : 'text'}
             id={field.id}
             placeholder={field.placeholder}
             value={value || ''}
@@ -73,8 +73,8 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
       case 'select':
         // Check if this is a sales rep field and use the dynamically loaded sales reps
         const options = field.id.toLowerCase().includes('salesrep') || field.id.toLowerCase().includes('sales_rep')
-          ? [...(field.options || []).filter(opt => opt.value === ''), ...salesReps]
-          : field.options;
+          ? [{ label: 'Select a sales rep', value: '' }, ...salesReps]
+          : field.options || [];
             
         return (
           <Select
@@ -86,8 +86,7 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {options?.map((option) => (
-                  // Ensure option.value is never an empty string
+                {options.map((option) => (
                   <SelectItem 
                     key={option.value || `option-${option.label}`} 
                     value={option.value || `option-${option.label}`}
