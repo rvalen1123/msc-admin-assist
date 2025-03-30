@@ -16,6 +16,7 @@ import CustomersPage from "./pages/CustomersPage";
 import SubmissionsPage from "./pages/SubmissionsPage";
 import SalesRepPage from "./pages/SalesRepPage";
 import ProductsPage from "./pages/ProductsPage";
+import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
 // Create a client
@@ -47,6 +48,7 @@ const App = () => (
                   <Route path="submissions" element={<SubmissionsPage />} />
                   <Route path="sales-reps" element={<SalesRepPage />} />
                   <Route path="products" element={<ProductsPage />} />
+                  <Route path="settings" element={<SettingsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
