@@ -6,7 +6,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../users/enums/user-role.enum';
 
 @ApiTags('products')
 @ApiBearerAuth()
