@@ -1,66 +1,47 @@
-
-export type UserRole = 'admin' | 'customer' | 'sales';
-
-export interface User {
+export interface Product {
   id: string;
   name: string;
-  email: string;
-  role: UserRole;
-  company?: string;
-}
-
-export interface SalesRep {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  territory?: string;
-  active: boolean;
-  createdAt: Date;
+  manufacturerId: string;
+  description: string;
+  price?: number;
 }
 
 export interface Manufacturer {
   id: string;
   name: string;
-  logo?: string;
 }
 
-export interface Product {
+export interface Customer {
   id: string;
-  name: string;
-  manufacturerId: string;
-  description?: string;
-  price?: number;
-  qCode?: string;
-  nationalAsp?: number;
-  mue?: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
 }
 
-export interface PriceHistory {
+export interface Order {
+  id: string;
+  customerId: string;
+  orderDate: Date;
+  totalAmount: number;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  items: OrderItem[];
+}
+
+export interface OrderItem {
   productId: string;
-  quarter: string;
-  price?: number;
-  nationalAsp?: number;
-  updatedAt: Date;
-}
-
-export type FormType = 'onboarding' | 'insurance' | 'order' | 'dme';
-
-export interface FormProgress {
-  currentStep: number;
-  totalSteps: number;
-  percentComplete: number;
+  quantity: number;
+  price: number;
 }
 
 export interface FormField {
   id: string;
   label: string;
-  type: 'text' | 'email' | 'phone' | 'select' | 'checkbox' | 'radio' | 'textarea' | 'date';
-  required: boolean;
+  type: 'text' | 'number' | 'email' | 'select' | 'textarea';
+  required?: boolean;
   placeholder?: string;
   options?: { label: string; value: string }[];
-  value?: string | boolean | string[];
-  error?: string;
 }
 
 export interface FormSection {
@@ -69,61 +50,27 @@ export interface FormSection {
   fields: FormField[];
 }
 
-export interface FormTemplate {
+export interface Submission {
   id: string;
-  type: FormType;
-  title: string;
-  description: string;
-  sections: FormSection[];
-  steps: {
-    id: string;
-    title: string;
-    sections: string[]; // section ids
-  }[];
-  manufacturerId?: string;
-  productId?: string;
+  formId: string;
+  customerId: string;
+  dateSubmitted: Date;
+  formData: Record<string, any>;
 }
 
-export interface FormSubmission {
+export interface SalesRep {
   id: string;
-  templateId: string;
-  userId: string;
-  data: Record<string, any>;
-  status: 'draft' | 'submitted' | 'processing' | 'completed' | 'rejected';
-  submittedAt?: Date;
-  completedAt?: Date;
-  pdfUrl?: string;
-}
-
-export interface CustomerData {
-  id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  phone?: string;
-  company?: string;
-  address?: Address;
-  contacts?: Contact[];
+  phone: string;
+  region: string;
 }
 
-export interface Address {
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
-}
-
-export interface Contact {
-  name: string;
-  title?: string;
-  email: string;
-  phone?: string;
-  isPrimary: boolean;
-}
-
-export interface AIAssistantResponse {
-  field: string;
-  value: string;
-  confidence: number;
+export interface PriceHistory {
+  productId: string;
+  quarter: string;
+  price?: number;
+  nationalAsp?: number;
+  updatedAt: Date;
 }
