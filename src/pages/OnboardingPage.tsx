@@ -9,6 +9,7 @@ import FormStepIndicator from '@/components/FormStepIndicator';
 import FormField from '@/components/FormField';
 import { useForm } from '@/context/FormContext';
 import { FormSection as FormSectionType } from '@/types';
+import { useNavigate } from 'react-router-dom';
 
 const OnboardingPage: React.FC = () => {
   const { 
@@ -19,11 +20,13 @@ const OnboardingPage: React.FC = () => {
     goToNextStep, 
     goToPreviousStep, 
     submitForm,
-    setFieldValue
+    setFieldValue,
+    addCustomer
   } = useForm();
   
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
   
   // Set active form type to onboarding on component mount
   useEffect(() => {
@@ -33,6 +36,35 @@ const OnboardingPage: React.FC = () => {
   // Handle form field changes
   const handleFieldChange = (id: string, value: any) => {
     setFieldValue(id, value);
+  };
+  
+  // Create customer from form data
+  const createCustomerFromFormData = () => {
+    // Extract relevant customer information from form data
+    const customerData = {
+      id: `customer-${Date.now()}`,
+      name: formData.companyName || formData.firstName + ' ' + formData.lastName,
+      email: formData.email || '',
+      phone: formData.phoneNumber || '',
+      company: formData.companyName || '',
+      address: formData.address ? {
+        line1: formData.address || '',
+        line2: formData.address2 || '',
+        city: formData.city || '',
+        state: formData.state || '',
+        zipCode: formData.zipCode || '',
+        country: formData.country || 'United States'
+      } : undefined,
+      contacts: formData.contactName ? [{
+        name: formData.contactName || formData.firstName + ' ' + formData.lastName,
+        title: formData.contactTitle || '',
+        email: formData.contactEmail || formData.email || '',
+        phone: formData.contactPhone || formData.phoneNumber || '',
+        isPrimary: true
+      }] : undefined
+    };
+    
+    return addCustomer(customerData);
   };
   
   // Handle form submission
@@ -51,7 +83,13 @@ const OnboardingPage: React.FC = () => {
     } else {
       try {
         setLoading(true);
-        await submitForm();
+        
+        // Submit form
+        const submission = await submitForm();
+        
+        // Create customer record from form data
+        const customerId = createCustomerFromFormData();
+        
         toast({
           title: "Success",
           description: "Onboarding form submitted successfully.",
@@ -66,6 +104,11 @@ const OnboardingPage: React.FC = () => {
           
           setTimeout(() => {
             window.open('https://docuseal.co', '_blank');
+            
+            // After a short delay, navigate to the customer view page
+            setTimeout(() => {
+              navigate('/customers');
+            }, 1000);
           }, 1500);
         }, 1000);
       } catch (error) {

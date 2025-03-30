@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import OnboardingPage from "./pages/OnboardingPage";
 import InsurancePage from "./pages/InsurancePage";
 import OrderPage from "./pages/OrderPage";
+import CustomersPage from "./pages/CustomersPage";
 import SubmissionsPage from "./pages/SubmissionsPage";
 import NotFound from "./pages/NotFound";
 
@@ -30,6 +31,7 @@ const App = () => (
                 <Route path="onboarding" element={<OnboardingPage />} />
                 <Route path="insurance" element={<InsurancePage />} />
                 <Route path="orders" element={<OrderPage />} />
+                <Route path="customers" element={<CustomersPage />} />
                 <Route path="submissions" element={<SubmissionsPage />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
