@@ -25,10 +25,12 @@ const InsurancePage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
-  // Set active form type to insurance on component mount
+  // Set active form type to insurance on component mount, but only if it's not already set
   useEffect(() => {
-    setActiveForm('insurance');
-  }, [setActiveForm]);
+    if (!activeForm || activeForm.id !== 'insurance') {
+      setActiveForm('insurance');
+    }
+  }, [setActiveForm, activeForm]);
   
   // Handle form field changes
   const handleFieldChange = (id: string, value: any) => {

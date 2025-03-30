@@ -28,10 +28,12 @@ const OnboardingPage: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Set active form type to onboarding on component mount
+  // Set active form type to onboarding on component mount, but only if it's not already set
   useEffect(() => {
-    setActiveForm('onboarding');
-  }, [setActiveForm]);
+    if (!activeForm || activeForm.id !== 'onboarding') {
+      setActiveForm('onboarding');
+    }
+  }, [setActiveForm, activeForm]);
   
   // Handle form field changes
   const handleFieldChange = (id: string, value: any) => {
