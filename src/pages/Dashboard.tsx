@@ -6,9 +6,24 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { FileText, ShieldCheck, Package, AlertCircle, ChevronRight, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { mockSubmissions } from '@/data/submissionsData';
 
 const Dashboard: React.FC = () => {
   const { currentUser } = useAuth();
+  
+  // Count pending submissions (those with status 'submitted')
+  const pendingSubmissionsCount = mockSubmissions.filter(
+    submission => submission.status === 'submitted'
+  ).length;
+  
+  // Count different types of pending submissions
+  const pendingInsuranceCount = mockSubmissions.filter(
+    submission => submission.status === 'submitted' && submission.templateId.startsWith('insurance')
+  ).length;
+  
+  const pendingOrdersCount = mockSubmissions.filter(
+    submission => submission.status === 'submitted' && submission.templateId.startsWith('order')
+  ).length;
 
   return (
     <div>
@@ -19,12 +34,14 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {currentUser?.role === 'admin' && (
+      {currentUser?.role === 'admin' && pendingSubmissionsCount > 0 && (
         <Alert className="mb-6">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Attention</AlertTitle>
           <AlertDescription>
-            There are 5 pending insurance verifications and 3 new orders that need your review.
+            There {pendingSubmissionsCount === 1 ? 'is' : 'are'} {pendingSubmissionsCount} pending {pendingSubmissionsCount === 1 ? 'submission' : 'submissions'} that {pendingSubmissionsCount === 1 ? 'needs' : 'need'} your review
+            {pendingInsuranceCount > 0 ? ` (${pendingInsuranceCount} insurance ${pendingInsuranceCount === 1 ? 'verification' : 'verifications'})` : ''}
+            {pendingOrdersCount > 0 ? ` (${pendingOrdersCount} ${pendingOrdersCount === 1 ? 'order' : 'orders'})` : ''}.
           </AlertDescription>
         </Alert>
       )}
