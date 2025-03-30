@@ -1,38 +1,23 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, HelpCircle, LogOut, Settings, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-
 const Navbar: React.FC = () => {
-  const { currentUser, logout } = useAuth();
-  
-  return (
-    <header className="bg-white border-b border-gray-200">
+  const {
+    currentUser,
+    logout
+  } = useAuth();
+  return <header className="bg-white border-b border-gray-200">
       <div className="flex h-16 items-center px-4 md:px-6">
         <SidebarTrigger />
         <div className="ml-4 flex items-center">
           <Link to="/" className="flex items-center">
-            <img 
-              src="/lovable-uploads/1499c309-73be-419a-bd43-85e0a3a9f84c.png" 
-              alt="MSC Wound Care" 
-              className="h-8 w-auto"
-            />
-            <span className="ml-2 text-xl font-semibold text-primary hidden md:inline-block">
-              MSC Wound Care Portal
-            </span>
+            
+            
           </Link>
         </div>
 
@@ -62,8 +47,7 @@ const Navbar: React.FC = () => {
                   <p className="text-sm font-medium leading-none">{currentUser?.name}</p>
                   <p className="text-xs leading-none text-muted-foreground">{currentUser?.email}</p>
                   <p className="text-xs font-medium mt-1 text-primary">
-                    {currentUser?.role === 'admin' ? 'Administrator' : 
-                     currentUser?.role === 'sales' ? 'Sales Representative' : 'Customer'}
+                    {currentUser?.role === 'admin' ? 'Administrator' : currentUser?.role === 'sales' ? 'Sales Representative' : 'Customer'}
                   </p>
                 </div>
               </DropdownMenuLabel>
@@ -87,8 +71,6 @@ const Navbar: React.FC = () => {
           </DropdownMenu>
         </div>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Navbar;
