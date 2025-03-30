@@ -10,6 +10,7 @@ import { AlertCircle } from 'lucide-react';
 import SubmissionsTable from '@/components/SubmissionsTable';
 import SubmissionDetailsDialog from '@/components/SubmissionDetailsDialog';
 import { mockSubmissions } from '@/data/submissionsData';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const SubmissionsPage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -18,6 +19,7 @@ const SubmissionsPage: React.FC = () => {
   const [submissions, setSubmissions] = useState<FormSubmission[]>(mockSubmissions);
   const [selectedSubmission, setSelectedSubmission] = useState<FormSubmission | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   // Check if the user is an admin, if not redirect
   useEffect(() => {
@@ -74,14 +76,14 @@ const SubmissionsPage: React.FC = () => {
   const hasPendingSubmissions = submissions.some(sub => sub.status === 'submitted');
 
   return (
-    <div className="container mx-auto py-6">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Submissions Review</h1>
-        <p className="text-gray-600">Review and process form submissions</p>
+    <div className="container mx-auto py-4 md:py-6 px-2 md:px-6">
+      <header className="mb-4 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900">Submissions Review</h1>
+        <p className="text-sm md:text-base text-gray-600">Review and process form submissions</p>
       </header>
 
       {hasPendingSubmissions && (
-        <Alert className="mb-6">
+        <Alert className="mb-4 md:mb-6">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Attention Required</AlertTitle>
           <AlertDescription>
@@ -91,19 +93,21 @@ const SubmissionsPage: React.FC = () => {
       )}
 
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle>Submissions</CardTitle>
+        <CardHeader className="pb-2 md:pb-3">
+          <CardTitle className="text-lg md:text-xl">Submissions</CardTitle>
           <CardDescription>
             Manage all form submissions in one place
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <SubmissionsTable
-            submissions={submissions}
-            onViewSubmission={handleView}
-            onApproveSubmission={handleApprove}
-            onRejectSubmission={handleReject}
-          />
+        <CardContent className="p-2 md:p-6">
+          <div className={isMobile ? "-mx-2" : ""}>
+            <SubmissionsTable
+              submissions={submissions}
+              onViewSubmission={handleView}
+              onApproveSubmission={handleApprove}
+              onRejectSubmission={handleReject}
+            />
+          </div>
         </CardContent>
       </Card>
 
