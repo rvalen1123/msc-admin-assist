@@ -1,0 +1,231 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator seed {
+  provider = "ts-node prisma/seed.ts"
+}
+
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  passwordHash  String
+  role          UserRole
+  firstName     String?
+  lastName      String?
+  company       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  salesRep      SalesRep?
+  formSubmissions FormSubmission[]
+
+  @@index([role])
+  @@index([email])
+}
+
+model Customer {
+  id            String      @id @default(uuid())
+  name          String
+  email         String      @unique
+  phone         String?
+  company       String?
+  addressLine1  String?
+  addressLine2  String?
+  city          String?
+  state         String?
+  zipCode       String?
+  country       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  contacts      CustomerContact[]
+  formSubmissions FormSubmission[]
+  orders        Order[]
+
+  @@index([name])
+  @@index([email])
+  @@index([company])
+}
+
+model CustomerContact {
+  id            String      @id @default(uuid())
+  customerId    String
+  name          String
+  title         String?
+  email         String?
+  phone         String?
+  isPrimary     Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  customer      Customer    @relation(fields: [customerId], references: [id])
+
+  @@index([customerId])
+  @@index([email])
+  @@index([isPrimary])
+}
+
+model Product {
+  id            String      @id @default(uuid())
+  name          String
+  manufacturerId String
+  description   String?
+  price         Decimal?
+  qCode         String?
+  nationalAsp   Decimal?
+  mue           String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  manufacturer  Manufacturer @relation(fields: [manufacturerId], references: [id])
+  orderItems    OrderItem[]
+  priceHistory  PriceHistory[]
+
+  @@index([manufacturerId])
+  @@index([name])
+  @@index([qCode])
+}
+
+model Manufacturer {
+  id            String      @id @default(uuid())
+  name          String
+  logoUrl       String?
+  createdAt     DateTime    @default(now())
+  products      Product[]
+
+  @@index([name])
+}
+
+model SalesRep {
+  id            String      @id @default(uuid())
+  userId        String      @unique
+  territory     String?
+  region        String?
+  active        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id])
+
+  @@index([territory])
+  @@index([region])
+  @@index([active])
+}
+
+model FormTemplate {
+  id            String      @id @default(uuid())
+  type          String
+  title         String
+  description   String?
+  schema        Json
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  submissions   FormSubmission[]
+
+  @@index([type])
+}
+
+model FormSubmission {
+  id            String      @id @default(uuid())
+  templateId    String
+  userId        String
+  customerId    String
+  data          Json
+  status        SubmissionStatus
+  submittedAt   DateTime?
+  completedAt   DateTime?
+  pdfUrl        String?
+  createdAt     DateTime    @default(now())
+  template      FormTemplate @relation(fields: [templateId], references: [id])
+  user          User        @relation(fields: [userId], references: [id])
+  customer      Customer    @relation(fields: [customerId], references: [id])
+
+  @@index([templateId])
+  @@index([userId])
+  @@index([customerId])
+  @@index([status])
+  @@index([submittedAt])
+  @@index([completedAt])
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  orderNumber   String      @unique
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id])
+  salesRepId    String
+  salesRep      User        @relation("SalesRepOrders", fields: [salesRepId], references: [id])
+  status        OrderStatus @default(DRAFT)
+  items         OrderItem[]
+  totalAmount   Float
+  shippingAddress String
+  billingAddress  String
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  shippedAt     DateTime?
+  deliveredAt   DateTime?
+  cancelledAt   DateTime?
+  refundedAt    DateTime?
+
+  @@index([customerId])
+  @@index([salesRepId])
+  @@index([status])
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  quantity    Int
+  unitPrice   Float
+  totalPrice  Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model PriceHistory {
+  id            String      @id @default(uuid())
+  productId     String
+  quarter       String
+  price         Decimal?
+  nationalAsp   Decimal?
+  updatedAt     DateTime    @updatedAt
+  product       Product     @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@index([quarter])
+  @@index([updatedAt])
+}
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+  SALES
+}
+
+enum SubmissionStatus {
+  DRAFT
+  SUBMITTED
+  PROCESSING
+  COMPLETED
+  REJECTED
+}
+
+enum OrderStatus {
+  DRAFT
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+} 

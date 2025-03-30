@@ -1,46 +1,165 @@
-# MSC Wound Care Admin Portal
+# MSC Wound Care Admin Portal - Backend
 
-## Project Overview
+This is the backend service for the MSC Wound Care Admin Portal, built with NestJS and TypeScript.
 
-This is a full-stack application consisting of:
-- Frontend: React/TypeScript application
-- Backend: NestJS/TypeScript API
-- Database: PostgreSQL
-- Infrastructure: Azure Cloud Services
+## Project Structure
 
-## Architecture
+```
+server/
+├── src/
+│   ├── config/                 # Configuration files
+│   │   ├── database.config.ts
+│   │   ├── jwt.config.ts
+│   │   └── aws.config.ts
+│   ├── modules/               # Feature modules
+│   │   ├── auth/             # Authentication module
+│   │   ├── users/            # User management
+│   │   ├── customers/        # Customer management
+│   │   ├── products/         # Product management
+│   │   ├── forms/            # Form management
+│   │   ├── orders/           # Order management
+│   │   └── common/           # Shared module
+│   ├── prisma/               # Prisma schema and migrations
+│   │   └── schema.prisma
+│   ├── common/               # Shared utilities
+│   │   ├── decorators/
+│   │   ├── filters/
+│   │   ├── guards/
+│   │   ├── interceptors/
+│   │   └── pipes/
+│   ├── types/                # TypeScript type definitions
+│   ├── app.module.ts         # Root module
+│   └── main.ts               # Application entry point
+├── test/                     # Test files
+├── .env                      # Environment variables
+├── .env.example             # Example environment variables
+├── package.json             # Project dependencies
+├── tsconfig.json           # TypeScript configuration
+└── Dockerfile              # Container configuration
+```
 
-### Container Architecture
-The application is containerized into two main services:
+## Container Configuration
 
-1. Frontend Container (`msc-frontend`)
-   - Serves the React application
-   - Runs on port 80
-   - Environment variables:
-     - `REACT_APP_API_URL`
-     - `REACT_APP_AUTH_DOMAIN`
-     - `REACT_APP_AUTH_CLIENT_ID`
+The backend service is containerized using Docker. The container configuration is defined in `Dockerfile`:
 
-2. Backend Container (`msc-api`)
-   - Hosts the NestJS API
-   - Runs on port 3000
-   - Environment variables:
-     - `DATABASE_URL`
-     - `JWT_SECRET`
-     - `JWT_EXPIRATION`
-     - `AZURE_STORAGE_CONNECTION_STRING`
-     - `AZURE_STORAGE_CONTAINER`
-     - `SENDGRID_API_KEY`
-     - `REDIS_URL`
-     - `FRONTEND_URL`
+```dockerfile
+# Build stage
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
 
-### Infrastructure Components
-- Azure Resource Group: `msc-wound-care`
-- Azure Container Registry: `mscwoundcare.azurecr.io`
-- Azure Container Apps Environment: `msc-env`
-- Azure Container Apps:
-  - Frontend: `msc-frontend`
-  - Backend: `msc-api`
+# Production stage
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+EXPOSE 3000
+CMD ["npm", "run", "start:prod"]
+```
+
+### Container Environment Variables
+
+Required environment variables for the container:
+- `DATABASE_URL` - PostgreSQL connection string
+- `JWT_SECRET` - JWT secret key
+- `JWT_EXPIRATION` - JWT token expiration time
+- `AZURE_STORAGE_CONNECTION_STRING` - Azure Storage connection string
+- `AZURE_STORAGE_CONTAINER` - Azure Storage container name
+- `SENDGRID_API_KEY` - SendGrid API key
+- `REDIS_URL` - Redis connection string
+- `FRONTEND_URL` - Frontend application URL (for CORS)
+
+### Building and Running the Container
+
+```bash
+# Build the container
+docker build -t msc-wound-care-api .
+
+# Run the container
+docker run -p 3000:3000 \
+  --env-file .env \
+  msc-wound-care-api
+```
+
+## Getting Started
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Set up environment variables:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. Set up the database:
+   ```bash
+   npx prisma generate
+   npx prisma migrate dev
+   ```
+
+4. Seed the database with test data:
+   ```bash
+   npx prisma db seed
+   ```
+   This will create:
+   - Admin user (admin@test.com / admin123)
+   - Sales representatives (salesrep1@test.com, salesrep2@test.com / salesrep123)
+   - Sample manufacturers
+   - Sample products
+   - Sample customers
+   - Sample orders
+   - Sample form templates and submissions
+
+5. Start the development server:
+   ```bash
+   npm run start:dev
+   ```
+
+## API Documentation
+
+Once the server is running, you can access the Swagger API documentation at:
+```
+http://localhost:3000/api
+```
+
+## Development
+
+- `npm run start:dev` - Start development server with hot-reload
+- `npm run build` - Build the application
+- `npm run start:prod` - Start production server
+- `npm run test` - Run tests
+- `npm run test:e2e` - Run end-to-end tests
+
+## Database Migrations
+
+To create a new migration:
+```bash
+npx prisma migrate dev --name <migration-name>
+```
+
+To apply migrations:
+```bash
+npx prisma migrate deploy
+```
+
+## Environment Variables
+
+Required environment variables:
+- `DATABASE_URL` - PostgreSQL connection string
+- `JWT_SECRET` - JWT secret key
+- `JWT_EXPIRATION` - JWT token expiration time
+- `AZURE_STORAGE_CONNECTION_STRING` - Azure Storage connection string
+- `AZURE_STORAGE_CONTAINER` - Azure Storage container name
+- `SENDGRID_API_KEY` - SendGrid API key
+- `REDIS_URL` - Redis connection string
+- `FRONTEND_URL` - Frontend application URL (for CORS)
 
 ## Project Progress
 
@@ -226,7 +345,7 @@ The project uses GitHub Actions for continuous integration and deployment. The C
 ### Continuous Deployment
 - Automated deployment to staging (main branch)
 - Automated deployment to production (release branches)
-- Docker containerization for both frontend and backend
+- Docker containerization
 - Azure Container Apps deployment
 - Slack notifications for deployment status
 
@@ -258,9 +377,8 @@ The following secrets need to be configured in GitHub:
    az containerapp env create --name msc-env --resource-group msc-wound-care
    ```
 
-4. Create Azure Container Apps for both frontend and backend:
+4. Create an Azure Container App:
    ```bash
-   # Create backend container app
    az containerapp create \
      --name msc-api \
      --resource-group msc-wound-care \
@@ -278,20 +396,6 @@ The following secrets need to be configured in GitHub:
        SENDGRID_API_KEY=$SENDGRID_API_KEY \
        REDIS_URL=$REDIS_URL \
        FRONTEND_URL=$FRONTEND_URL
-
-   # Create frontend container app
-   az containerapp create \
-     --name msc-frontend \
-     --resource-group msc-wound-care \
-     --environment msc-env \
-     --registry-server mscwoundcare.azurecr.io \
-     --registry-username $ACR_USERNAME \
-     --registry-password $ACR_PASSWORD \
-     --target-port 80 \
-     --env-vars \
-       REACT_APP_API_URL=$API_URL \
-       REACT_APP_AUTH_DOMAIN=$AUTH_DOMAIN \
-       REACT_APP_AUTH_CLIENT_ID=$AUTH_CLIENT_ID
    ```
 
 5. Create a service principal for GitHub Actions:
@@ -315,11 +419,10 @@ The following secrets need to be configured in GitHub:
 1. Push to `develop` branch:
    - Triggers CI pipeline
    - Runs tests and linting
-   - Builds both frontend and backend applications
+   - Builds application
 
 2. Push to `main` branch:
    - Triggers CI pipeline
-   - Builds and pushes Docker containers
    - Deploys to staging environment
    - Sends notification to Slack
 
@@ -332,15 +435,13 @@ The following secrets need to be configured in GitHub:
 To test the CI/CD pipeline locally:
 
 ```bash
-# Build and run backend container
-cd server
-docker build -t msc-wound-care-api .
-docker run -p 3000:3000 --env-file .env msc-wound-care-api
+# Build Docker image
+docker build -t msc-wound-care .
 
-# Build and run frontend container
-cd ../client
-docker build -t msc-wound-care-frontend .
-docker run -p 80:80 --env-file .env msc-wound-care-frontend
+# Run container with environment variables
+docker run -p 3000:3000 \
+  --env-file .env \
+  msc-wound-care
 ```
 
 ### Monitoring and Logging
@@ -361,4 +462,4 @@ The application uses Azure Monitor and Application Insights for monitoring and l
      --resource-group msc-wound-care \
      --logs-destination application-insights \
      --logs-workspace-id <workspace-id>
-   ```
+   ``` 
