@@ -1,15 +1,13 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import FormStepIndicator from '@/components/FormStepIndicator';
-import FormField from '@/components/FormField';
 import { useForm } from '@/context/FormContext';
 import { FormSection as FormSectionType } from '@/types';
 import { useNavigate } from 'react-router-dom';
+import FormHeader from '@/components/form/FormHeader';
+import FormContent from '@/components/form/FormContent';
+import FormFooter from '@/components/form/FormFooter';
 
 const OnboardingPage: React.FC = () => {
   const { 
@@ -142,70 +140,27 @@ const OnboardingPage: React.FC = () => {
 
   return (
     <div>
-      <div className="bg-blue-600 text-white py-4 px-6 rounded-t-md">
-        <h1 className="text-xl font-semibold">{activeForm.title}</h1>
-        <p className="text-sm text-blue-100">{activeForm.description}</p>
-      </div>
+      <FormHeader form={activeForm} />
       
       <Card className="border-t-0 rounded-t-none">
         <CardContent className="pt-6">
-          <FormStepIndicator
-            currentStep={formProgress.currentStep}
-            steps={activeForm.steps}
+          <FormContent 
+            activeForm={activeForm}
+            formData={formData}
+            formProgress={formProgress}
+            sections={sections}
+            onFieldChange={handleFieldChange}
+            onSubmit={handleSubmit}
           />
           
-          <form onSubmit={handleSubmit}>
-            {sections.map((section) => (
-              <div key={section.id} className="form-section mb-8">
-                <div className="section-header">
-                  {section.title}
-                </div>
-                <div className="form-section-content">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {section.fields.map((field) => (
-                      <div key={field.id} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
-                        <FormField
-                          field={field}
-                          value={formData[field.id]}
-                          onChange={handleFieldChange}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            <Separator className="my-6" />
-            
-            <div className="flex justify-between items-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={goToPreviousStep}
-                disabled={formProgress.currentStep === 1 || loading}
-              >
-                <ChevronLeft className="h-4 w-4 mr-1" /> Back
-              </Button>
-              
-              <div className="text-sm text-gray-500">
-                Step {formProgress.currentStep} of {formProgress.totalSteps}
-              </div>
-              
-              <Button
-                type="submit"
-                disabled={loading}
-              >
-                {loading ? (
-                  'Processing...'
-                ) : formProgress.currentStep === formProgress.totalSteps ? (
-                  'Submit Form'
-                ) : (
-                  <>Continue <ChevronRight className="h-4 w-4 ml-1" /></>
-                )}
-              </Button>
-            </div>
-          </form>
+          <FormFooter 
+            currentStep={formProgress.currentStep}
+            totalSteps={formProgress.totalSteps}
+            onPrevious={goToPreviousStep}
+            onNext={handleSubmit}
+            isLastStep={formProgress.currentStep === formProgress.totalSteps}
+            isLoading={loading}
+          />
         </CardContent>
       </Card>
       
