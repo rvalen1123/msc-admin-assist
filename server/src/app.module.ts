@@ -41,7 +41,7 @@ import { CommonModule } from './modules/common/common.module';
         encrypt: true, // For Azure SQL
         trustServerCertificate: false, // For Azure SQL
         enableArithAbort: true,
-        requestTimeout: 30000, // 30 seconds
+        connectTimeout: 30000, // 30 seconds
       },
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production',

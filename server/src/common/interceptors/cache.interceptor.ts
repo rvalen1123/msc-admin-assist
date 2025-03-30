@@ -10,14 +10,24 @@ import { Redis } from 'ioredis';
 
 @Injectable()
 export class CacheInterceptor implements NestInterceptor {
-  private readonly redis: Redis;
+  private readonly redis: Redis | null;
   private readonly defaultTTL: number = 3600; // 1 hour default TTL
 
   constructor() {
-    this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+    // Only initialize Redis if not in test mode
+    if (process.env.NODE_ENV !== 'test') {
+      this.redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+    } else {
+      this.redis = null;
+    }
   }
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+    // Skip caching in test mode
+    if (!this.redis) {
+      return next.handle();
+    }
+
     const request = context.switchToHttp().getRequest();
     const key = this.getCacheKey(request);
 

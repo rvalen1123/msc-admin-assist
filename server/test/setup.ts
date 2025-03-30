@@ -1,8 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 export const mockPrismaService = {
+  user: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
   customer: {
     create: jest.fn(),
     findMany: jest.fn(),
@@ -31,6 +39,48 @@ export const mockPrismaService = {
     update: jest.fn(),
     delete: jest.fn(),
   },
+  orderItem: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  salesRep: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  manufacturer: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  formTemplate: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  customerContact: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  priceHistory: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
 };
 
 export const mockConfigService = {
@@ -50,6 +100,11 @@ export const mockConfigService = {
   }),
 };
 
+export const mockJwtService = {
+  sign: jest.fn().mockReturnValue('mock-jwt-token'),
+  verify: jest.fn().mockReturnValue({ sub: 'mock-user-id' }),
+};
+
 export const createTestingModule = async (module: any) => {
   return Test.createTestingModule({
     imports: [
@@ -67,6 +122,10 @@ export const createTestingModule = async (module: any) => {
       {
         provide: ConfigService,
         useValue: mockConfigService,
+      },
+      {
+        provide: JwtService,
+        useValue: mockJwtService,
       },
     ],
   }).compile();
