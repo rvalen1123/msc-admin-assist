@@ -74,11 +74,13 @@ const Sidebar: React.FC = () => {
       <SidebarHeader className="flex h-14 items-center border-b px-4">
         <Link to="/" className="flex items-center">
           <img 
-            src="/lovable-uploads/7e6ed07e-97db-460b-bc10-43824dd3311c.png" 
+            src="/lovable-uploads/1499c309-73be-419a-bd43-85e0a3a9f84c.png" 
             alt="MSC Wound Care" 
-            className="h-6 w-auto"
+            className="h-8 w-auto"
           />
-          <span className="ml-2 text-lg font-semibold">MSC Portal</span>
+          <span className="ml-2 text-lg font-semibold text-primary hidden md:inline-block">
+            MSC Wound Care
+          </span>
         </Link>
       </SidebarHeader>
       <SidebarContent>

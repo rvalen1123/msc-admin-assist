@@ -26,7 +26,7 @@ const Navbar: React.FC = () => {
         <div className="ml-4 flex items-center">
           <Link to="/" className="flex items-center">
             <img 
-              src="/lovable-uploads/7e6ed07e-97db-460b-bc10-43824dd3311c.png" 
+              src="/lovable-uploads/1499c309-73be-419a-bd43-85e0a3a9f84c.png" 
               alt="MSC Wound Care" 
               className="h-8 w-auto"
             />
