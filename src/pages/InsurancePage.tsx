@@ -34,6 +34,7 @@ const InsurancePage: React.FC = () => {
   
   // Handle form field changes
   const handleFieldChange = (id: string, value: any) => {
+    console.log('Field change:', id, value);
     setFieldValue(id, value);
   };
   

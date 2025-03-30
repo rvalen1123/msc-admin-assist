@@ -81,7 +81,7 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
             value={value || ''}
             onValueChange={handleChange}
           >
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue placeholder={field.placeholder || 'Select...'} />
             </SelectTrigger>
             <SelectContent>
