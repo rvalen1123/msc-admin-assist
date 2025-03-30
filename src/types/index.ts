@@ -9,6 +9,16 @@ export interface User {
   company?: string;
 }
 
+export interface SalesRep {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  territory?: string;
+  active: boolean;
+  createdAt: Date;
+}
+
 export interface Manufacturer {
   id: string;
   name: string;

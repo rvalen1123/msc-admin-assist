@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { FormField as FormFieldType } from '@/types';
 import { cn } from '@/lib/utils';
+import { getSalesReps } from '@/data/salesRepData';
 
 interface FormFieldProps {
   field: FormFieldType;
@@ -23,6 +24,19 @@ interface FormFieldProps {
 }
 
 const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
+  const [salesReps, setSalesReps] = useState<{ label: string; value: string }[]>([]);
+
+  useEffect(() => {
+    // Load sales reps for dropdowns if the field is salesRepName or similar
+    if (field.id.toLowerCase().includes('salesrep') || field.id.toLowerCase().includes('sales_rep')) {
+      const reps = getSalesReps();
+      setSalesReps(reps.filter(rep => rep.active).map(rep => ({
+        label: rep.name,
+        value: rep.id
+      })));
+    }
+  }, [field.id]);
+  
   const handleChange = (newValue: any) => {
     onChange(field.id, newValue);
   };
@@ -56,6 +70,11 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
         );
       
       case 'select':
+        // Check if this is a sales rep field and use the dynamically loaded sales reps
+        const options = field.id.toLowerCase().includes('salesrep') || field.id.toLowerCase().includes('sales_rep')
+          ? [...(field.options || []).filter(opt => opt.value === ''), ...salesReps]
+          : field.options;
+            
         return (
           <Select
             value={value || ''}
@@ -66,10 +85,10 @@ const FormField: React.FC<FormFieldProps> = ({ field, value, onChange }) => {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {field.options?.map((option) => (
+                {options?.map((option) => (
                   // Ensure option.value is never an empty string
                   <SelectItem 
-                    key={option.value} 
+                    key={option.value || `option-${option.label}`} 
                     value={option.value || `option-${option.label}`}
                   >
                     {option.label}
