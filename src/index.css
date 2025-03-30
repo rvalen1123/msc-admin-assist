@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,8 +14,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 215 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -30,25 +31,20 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 215 100% 50%;
 
     --radius: 0.5rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --section-header-bg: 210 100% 95%;
   }
 
   .dark {
@@ -61,7 +57,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
+    --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -97,5 +93,54 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Custom Components */
+@layer components {
+  .section-header {
+    @apply bg-[hsl(var(--section-header-bg))] text-primary font-semibold py-2 px-4 rounded-t-md border-b border-gray-200;
+  }
+  
+  .form-section {
+    @apply bg-white rounded-md shadow-sm border border-gray-200 mb-6;
+  }
+  
+  .form-section-content {
+    @apply p-4;
+  }
+  
+  .form-step {
+    @apply w-10 h-10 rounded-full flex items-center justify-center text-white font-medium text-sm;
+  }
+  
+  .form-step-active {
+    @apply bg-primary;
+  }
+  
+  .form-step-completed {
+    @apply bg-green-500;
+  }
+  
+  .form-step-pending {
+    @apply bg-gray-300 text-gray-600;
+  }
+  
+  .form-input {
+    @apply w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 
+    focus:outline-none focus:ring-1 focus:ring-primary;
+  }
+  
+  .required-field::after {
+    content: " *";
+    @apply text-red-500;
+  }
+  
+  .helper-text {
+    @apply text-xs text-gray-500 mt-1;
+  }
+  
+  .error-text {
+    @apply text-xs text-red-500 mt-1;
   }
 }
