@@ -1,13 +1,11 @@
 
 import React from 'react';
-import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Switch } from '@/components/ui/switch';
+import { Form } from '@/components/ui/form';
 import { SalesRep } from '@/types';
-import { toast } from '@/hooks/use-toast';
+import { useSalesRepForm } from '@/hooks/useSalesRepForm';
+import SalesRepFormFields from './SalesRepFormFields';
 
 interface SalesRepFormProps {
   onSubmit: (data: Omit<SalesRep, 'id' | 'createdAt'>) => void;
@@ -20,26 +18,11 @@ const SalesRepForm: React.FC<SalesRepFormProps> = ({
   initialData = {}, 
   isEdit = false 
 }) => {
-  const form = useForm({
-    defaultValues: {
-      name: initialData.name || '',
-      email: initialData.email || '',
-      phone: initialData.phone || '',
-      territory: initialData.territory || '',
-      active: initialData.active !== undefined ? initialData.active : true,
-    }
+  const { form, handleSubmit } = useSalesRepForm({
+    initialData,
+    onSubmit,
+    isEdit
   });
-
-  const handleSubmit = (data: any) => {
-    onSubmit(data);
-    form.reset();
-    toast({
-      title: isEdit ? "Sales Rep Updated" : "Sales Rep Added",
-      description: isEdit 
-        ? `${data.name} has been updated successfully.`
-        : `${data.name} has been added to the team.`,
-    });
-  };
 
   return (
     <Card className="w-full max-w-md mx-auto">
@@ -49,82 +32,7 @@ const SalesRepForm: React.FC<SalesRepFormProps> = ({
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)}>
           <CardContent className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="John Doe" required />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} placeholder="john.doe@example.com" required />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone Number</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="(555) 123-4567" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="territory"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Territory</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Northeast" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="active"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Active Status</FormLabel>
-                    <div className="text-sm text-muted-foreground">
-                      Set whether this sales rep is currently active
-                    </div>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+            <SalesRepFormFields form={form} />
           </CardContent>
           
           <CardFooter className="flex justify-end space-x-2">
