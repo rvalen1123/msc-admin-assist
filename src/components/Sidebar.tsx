@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Sidebar as ShadcnSidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
-import { Home, FileText, ShieldCheck, Package, Settings, BarChart3, Users, HelpCircle } from 'lucide-react';
+import { Home, FileText, ShieldCheck, Package, Settings, BarChart3, Users, HelpCircle, ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const {
@@ -37,6 +39,11 @@ const Sidebar: React.FC = () => {
     href: '/customers',
     roles: ['admin', 'sales']
   }, {
+    icon: ClipboardList,
+    label: 'Submissions',
+    href: '/submissions',
+    roles: ['admin']
+  }, {
     icon: BarChart3,
     label: 'Reports',
     href: '/reports',
@@ -50,6 +57,7 @@ const Sidebar: React.FC = () => {
 
   // Filter menu items based on user role
   const filteredMenuItems = menuItems.filter(item => currentUser && item.roles.includes(currentUser.role));
+  
   return <ShadcnSidebar>
       <SidebarHeader className="flex h-14 items-center border-b px-4">
         <Link to="/" className="flex items-center">
@@ -77,4 +85,5 @@ const Sidebar: React.FC = () => {
       </SidebarFooter>
     </ShadcnSidebar>;
 };
+
 export default Sidebar;

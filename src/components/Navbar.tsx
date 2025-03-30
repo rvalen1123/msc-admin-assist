@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -6,11 +7,16 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, HelpCircle, LogOut, Settings, User } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+
 const Navbar: React.FC = () => {
   const {
     currentUser,
     logout
   } = useAuth();
+  
+  // Mock notification count for admin users
+  const notificationCount = currentUser?.role === 'admin' ? 3 : 0;
+
   return <header className="bg-white border-b border-gray-200">
       <div className="flex h-16 items-center px-4 md:px-6">
         <SidebarTrigger />
@@ -22,9 +28,16 @@ const Navbar: React.FC = () => {
         </div>
 
         <div className="ml-auto flex items-center space-x-1 md:space-x-4">
-          <Button variant="ghost" size="icon" className="text-gray-500">
-            <Bell size={20} />
-          </Button>
+          <div className="relative">
+            <Button variant="ghost" size="icon" className="text-gray-500" aria-label="Notifications">
+              <Bell size={20} />
+              {notificationCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">
+                  {notificationCount}
+                </span>
+              )}
+            </Button>
+          </div>
 
           <Button variant="ghost" size="icon" className="text-gray-500">
             <HelpCircle size={20} />
@@ -73,4 +86,5 @@ const Navbar: React.FC = () => {
       </div>
     </header>;
 };
+
 export default Navbar;
