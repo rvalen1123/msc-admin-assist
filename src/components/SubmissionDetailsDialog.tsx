@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock, FileText, XCircle } from 'lucide-react';
+import { CheckCircle, FileText, XCircle } from 'lucide-react';
 import { FormSubmission } from '@/types';
+import StatusBadge from './StatusBadge';
 
 interface SubmissionDetailsDialogProps {
   submission: FormSubmission | null;
@@ -44,22 +44,6 @@ const SubmissionDetailsDialog: React.FC<SubmissionDetailsDialogProps> = ({
     return 'Unknown';
   };
 
-  // Helper function to get status badge
-  const getStatusBadge = (status: FormSubmission['status']) => {
-    switch (status) {
-      case 'draft':
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800 flex items-center gap-1"><Clock className="h-3 w-3" /> Draft</Badge>;
-      case 'submitted':
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800 flex items-center gap-1"><FileText className="h-3 w-3" /> Submitted</Badge>;
-      case 'processing':
-        return <Badge variant="outline" className="bg-yellow-100 text-yellow-800 flex items-center gap-1"><Clock className="h-3 w-3" /> Processing</Badge>;
-      case 'completed':
-        return <Badge variant="outline" className="bg-green-100 text-green-800 flex items-center gap-1"><CheckCircle className="h-3 w-3" /> Completed</Badge>;
-      default:
-        return <Badge variant="outline">Unknown</Badge>;
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
@@ -75,7 +59,7 @@ const SubmissionDetailsDialog: React.FC<SubmissionDetailsDialogProps> = ({
               <h2 className="text-lg font-medium">{getFormTypeLabel(submission.templateId)} Form</h2>
               <p className="text-sm text-gray-500">ID: {submission.id}</p>
             </div>
-            <div>{getStatusBadge(submission.status)}</div>
+            <div><StatusBadge status={submission.status} /></div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
