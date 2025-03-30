@@ -85,14 +85,14 @@ const SubmissionActionsMenu: React.FC<SubmissionActionsMenuProps> = ({
       icon: <XCircle className="mr-2 h-4 w-4" />,
       onClick: () => onReject(submission.id),
       condition: submission.status === 'submitted',
-      variant: 'destructive'
+      variant: 'destructive' as const  // Fixed: Add as const to ensure proper type
     }] : []),
     ...(onDelete ? [{
       label: 'Delete',
       icon: <Trash className="mr-2 h-4 w-4" />,
       onClick: () => onDelete(submission.id),
       condition: ['draft', 'rejected'].includes(submission.status),
-      variant: 'destructive'
+      variant: 'destructive' as const  // Fixed: Add as const to ensure proper type
     }] : []),
     ...(onDownload ? [{
       label: 'Download',
