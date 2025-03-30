@@ -7,7 +7,7 @@ interface FormFooterProps {
   currentStep: number;
   totalSteps: number;
   onPrevious: () => void;
-  onNext: () => void;
+  onNext: (e: React.FormEvent) => void;
   isLastStep: boolean;
   isLoading: boolean;
 }
@@ -37,6 +37,7 @@ const FormFooter: React.FC<FormFooterProps> = ({
       
       <Button
         type="submit"
+        onClick={(e) => onNext(e)}
         disabled={isLoading}
       >
         {isLoading ? (

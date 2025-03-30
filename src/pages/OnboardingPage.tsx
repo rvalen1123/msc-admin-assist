@@ -150,17 +150,16 @@ const OnboardingPage: React.FC = () => {
             formProgress={formProgress}
             sections={sections}
             onFieldChange={handleFieldChange}
-            onSubmit={handleSubmit}
-          />
-          
-          <FormFooter 
-            currentStep={formProgress.currentStep}
-            totalSteps={formProgress.totalSteps}
-            onPrevious={goToPreviousStep}
-            onNext={handleSubmit}
-            isLastStep={formProgress.currentStep === formProgress.totalSteps}
-            isLoading={loading}
-          />
+          >
+            <FormFooter 
+              currentStep={formProgress.currentStep}
+              totalSteps={formProgress.totalSteps}
+              onPrevious={goToPreviousStep}
+              onNext={handleSubmit}
+              isLastStep={formProgress.currentStep === formProgress.totalSteps}
+              isLoading={loading}
+            />
+          </FormContent>
         </CardContent>
       </Card>
       

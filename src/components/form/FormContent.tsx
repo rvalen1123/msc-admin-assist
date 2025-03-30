@@ -11,7 +11,7 @@ interface FormContentProps {
   formProgress: { currentStep: number; totalSteps: number; percentComplete: number };
   sections: FormSectionType[];
   onFieldChange: (id: string, value: any) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  children: React.ReactNode;
 }
 
 const FormContent: React.FC<FormContentProps> = ({
@@ -20,10 +20,10 @@ const FormContent: React.FC<FormContentProps> = ({
   formProgress,
   sections,
   onFieldChange,
-  onSubmit,
+  children,
 }) => {
   return (
-    <form onSubmit={onSubmit}>
+    <form>
       <FormStepIndicator
         currentStep={formProgress.currentStep}
         steps={activeForm.steps}
@@ -51,6 +51,7 @@ const FormContent: React.FC<FormContentProps> = ({
       ))}
       
       <Separator className="my-6" />
+      {children}
     </form>
   );
 };
