@@ -1,35 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomersService } from './customers.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { CustomersModule } from './customers.module';
 import { NotFoundException } from '@nestjs/common';
+import { createTestingModule, mockPrismaService } from '../../test/setup';
 
 describe('CustomersService', () => {
   let service: CustomersService;
-  let prisma: PrismaService;
-
-  const mockPrismaService = {
-    customer: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
-  };
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        CustomersService,
-        {
-          provide: PrismaService,
-          useValue: mockPrismaService,
-        },
-      ],
-    }).compile();
-
+    const module: TestingModule = await createTestingModule(CustomersModule);
     service = module.get<CustomersService>(CustomersService);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   it('should be defined', () => {
@@ -45,24 +25,26 @@ describe('CustomersService', () => {
           {
             name: 'John Doe',
             email: 'john@example.com',
+            isPrimary: true,
           },
         ],
       };
 
-      const expectedResult = {
+      const expectedCustomer = {
         id: '1',
         ...createCustomerDto,
         contacts: createCustomerDto.contacts.map(contact => ({
           id: '1',
+          customerId: '1',
           ...contact,
         })),
       };
 
-      mockPrismaService.customer.create.mockResolvedValue(expectedResult);
+      mockPrismaService.customer.create.mockResolvedValue(expectedCustomer);
 
       const result = await service.create(createCustomerDto);
 
-      expect(result).toEqual(expectedResult);
+      expect(result).toEqual(expectedCustomer);
       expect(mockPrismaService.customer.create).toHaveBeenCalledWith({
         data: {
           name: createCustomerDto.name,
@@ -84,12 +66,15 @@ describe('CustomersService', () => {
         {
           id: '1',
           name: 'Customer 1',
-          contacts: [],
-        },
-        {
-          id: '2',
-          name: 'Customer 2',
-          contacts: [],
+          email: 'customer1@example.com',
+          contacts: [
+            {
+              id: '1',
+              customerId: '1',
+              name: 'Contact 1',
+              email: 'contact1@example.com',
+            },
+          ],
         },
       ];
 
@@ -112,7 +97,15 @@ describe('CustomersService', () => {
       const expectedCustomer = {
         id: customerId,
         name: 'Test Customer',
-        contacts: [],
+        email: 'test@example.com',
+        contacts: [
+          {
+            id: '1',
+            customerId: '1',
+            name: 'Contact 1',
+            email: 'contact1@example.com',
+          },
+        ],
       };
 
       mockPrismaService.customer.findUnique.mockResolvedValue(expectedCustomer);
@@ -141,37 +134,23 @@ describe('CustomersService', () => {
       const customerId = '1';
       const updateCustomerDto = {
         name: 'Updated Customer',
-        contacts: [
-          {
-            name: 'Jane Doe',
-            email: 'jane@example.com',
-          },
-        ],
+        email: 'updated@example.com',
       };
 
-      const expectedResult = {
+      const expectedCustomer = {
         id: customerId,
         ...updateCustomerDto,
-        contacts: updateCustomerDto.contacts.map(contact => ({
-          id: '1',
-          ...contact,
-        })),
+        contacts: [],
       };
 
-      mockPrismaService.customer.update.mockResolvedValue(expectedResult);
+      mockPrismaService.customer.update.mockResolvedValue(expectedCustomer);
 
       const result = await service.update(customerId, updateCustomerDto);
 
-      expect(result).toEqual(expectedResult);
+      expect(result).toEqual(expectedCustomer);
       expect(mockPrismaService.customer.update).toHaveBeenCalledWith({
         where: { id: customerId },
-        data: {
-          name: updateCustomerDto.name,
-          contacts: {
-            deleteMany: {},
-            create: updateCustomerDto.contacts,
-          },
-        },
+        data: updateCustomerDto,
         include: {
           contacts: true,
         },
@@ -182,11 +161,10 @@ describe('CustomersService', () => {
       const customerId = '1';
       const updateCustomerDto = {
         name: 'Updated Customer',
+        email: 'updated@example.com',
       };
 
-      mockPrismaService.customer.update.mockRejectedValue({
-        code: 'P2025',
-      });
+      mockPrismaService.customer.update.mockRejectedValue(new Error('Record not found'));
 
       await expect(service.update(customerId, updateCustomerDto)).rejects.toThrow(NotFoundException);
     });
@@ -207,9 +185,7 @@ describe('CustomersService', () => {
 
     it('should throw NotFoundException when deleting non-existent customer', async () => {
       const customerId = '1';
-      mockPrismaService.customer.delete.mockRejectedValue({
-        code: 'P2025',
-      });
+      mockPrismaService.customer.delete.mockRejectedValue(new Error('Record not found'));
 
       await expect(service.remove(customerId)).rejects.toThrow(NotFoundException);
     });
@@ -221,8 +197,9 @@ describe('CustomersService', () => {
       const expectedContacts = [
         {
           id: '1',
-          name: 'John Doe',
-          email: 'john@example.com',
+          customerId: '1',
+          name: 'Contact 1',
+          email: 'contact1@example.com',
         },
       ];
 

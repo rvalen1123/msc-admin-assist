@@ -10,15 +10,11 @@ datasource db {
   url      = env("AZURE_SQL_CONNECTION_STRING")
 }
 
-generator seed {
-  provider = "ts-node prisma/seed.ts"
-}
-
 model User {
   id            String      @id @default(uuid())
   email         String      @unique
   passwordHash  String
-  role          String      // Changed from enum to String for SQL Server
+  role          String      // ADMIN, CUSTOMER, SALES
   firstName     String?
   lastName      String?
   company       String?
@@ -26,7 +22,7 @@ model User {
   updatedAt     DateTime    @updatedAt
   salesRep      SalesRep?
   formSubmissions FormSubmission[]
-  salesRepOrders Order[]    // Added missing relation field
+  salesRepOrders Order[]    @relation("SalesRepOrders")
 
   @@index([role])
   @@index([email])
@@ -134,7 +130,7 @@ model FormSubmission {
   userId        String
   customerId    String
   data          String
-  status        String      // Changed from enum to String for SQL Server
+  status        String      @default("DRAFT") // DRAFT, SUBMITTED, PROCESSING, COMPLETED, REJECTED
   submittedAt   DateTime?
   completedAt   DateTime?
   pdfUrl        String?
@@ -158,7 +154,7 @@ model Order {
   customer      Customer    @relation(fields: [customerId], references: [id])
   salesRepId    String
   salesRep      User        @relation("SalesRepOrders", fields: [salesRepId], references: [id])
-  status        String      @default("DRAFT") // Changed from enum to String for SQL Server
+  status        String      @default("DRAFT") // DRAFT, PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, REFUNDED
   items         OrderItem[]
   totalAmount   Float
   shippingAddress String
@@ -204,29 +200,4 @@ model PriceHistory {
   @@index([productId])
   @@index([quarter])
   @@index([updatedAt])
-}
-
-enum UserRole {
-  ADMIN
-  CUSTOMER
-  SALES
-}
-
-enum SubmissionStatus {
-  DRAFT
-  SUBMITTED
-  PROCESSING
-  COMPLETED
-  REJECTED
-}
-
-enum OrderStatus {
-  DRAFT
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  REFUNDED
 } 
