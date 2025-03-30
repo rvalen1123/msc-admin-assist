@@ -1,56 +1,93 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { PrismaService } from '../../common/prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
 import { User } from './entities/user.entity';
 import { SalesRep } from './entities/sales-rep.entity';
-import * as bcrypt from 'bcrypt';
+import { UserRole } from './enums/user-role.enum';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(SalesRep)
-    private readonly salesRepRepository: Repository<SalesRep>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async findOne(id: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+  async findById(id: string): Promise<Omit<User, 'salesRep'>> {
+    const user = await this.prisma.user.findUnique({ 
+      where: { id },
+      include: { salesRep: false }
+    });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
     return user;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email } });
-  }
-
-  async create(userData: Partial<User>): Promise<User> {
-    const user = this.userRepository.create(userData);
-    return this.userRepository.save(user);
-  }
-
-  async createSalesRep(userId: string, salesRepData: Partial<SalesRep>): Promise<SalesRep> {
-    const salesRep = this.salesRepRepository.create({
-      ...salesRepData,
-      userId,
+  async findByEmail(email: string): Promise<Omit<User, 'salesRep'> | null> {
+    return this.prisma.user.findUnique({ 
+      where: { email },
+      include: { salesRep: false }
     });
-    return this.salesRepRepository.save(salesRep);
   }
 
-  async update(id: string, updateData: Partial<User>): Promise<User> {
-    const user = await this.findOne(id);
-    Object.assign(user, updateData);
-    return this.userRepository.save(user);
+  async create(userData: {
+    email: string;
+    password: string;
+    role?: string;
+    firstName?: string;
+    lastName?: string;
+    company?: string;
+  }): Promise<Omit<User, 'salesRep'>> {
+    const passwordHash = await this.hashPassword(userData.password);
+    return this.prisma.user.create({
+      data: {
+        email: userData.email,
+        passwordHash,
+        role: userData.role || UserRole.CUSTOMER,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        company: userData.company,
+      },
+      include: { salesRep: false }
+    });
+  }
+
+  async createSalesRep(userId: string, salesRepData: {
+    territory?: string;
+    region?: string;
+    active?: boolean;
+  }): Promise<SalesRep> {
+    return this.prisma.salesRep.create({
+      data: {
+        ...salesRepData,
+        userId,
+      },
+      include: { user: true }
+    });
+  }
+
+  async update(id: string, updateData: {
+    email?: string;
+    password?: string;
+    role?: string;
+    firstName?: string;
+    lastName?: string;
+    company?: string;
+  }): Promise<Omit<User, 'salesRep'>> {
+    const data: any = { ...updateData };
+    if (updateData.password) {
+      data.passwordHash = await this.hashPassword(updateData.password);
+      delete data.password;
+    }
+    return this.prisma.user.update({
+      where: { id },
+      data,
+      include: { salesRep: false }
+    });
   }
 
   async remove(id: string): Promise<void> {
-    const user = await this.findOne(id);
-    await this.userRepository.remove(user);
+    await this.prisma.user.delete({ where: { id } });
   }
 
-  async hashPassword(password: string): Promise<string> {
+  private async hashPassword(password: string): Promise<string> {
     return bcrypt.hash(password, 10);
   }
 

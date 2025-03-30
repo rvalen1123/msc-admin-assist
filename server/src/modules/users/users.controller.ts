@@ -17,7 +17,7 @@ export class UsersController {
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
   @ApiResponse({ status: 201, description: 'User created successfully', type: User })
-  async create(@Body() createUserDto: CreateUserDto): Promise<User> {
+  async create(@Body() createUserDto: CreateUserDto): Promise<Omit<User, 'salesRep'>> {
     return this.usersService.create(createUserDto);
   }
 
@@ -26,20 +26,24 @@ export class UsersController {
   @ApiResponse({ status: 201, description: 'Sales rep created successfully', type: SalesRep })
   async createSalesRep(@Body() createSalesRepDto: CreateSalesRepDto): Promise<SalesRep> {
     const user = await this.usersService.create(createSalesRepDto.user);
-    return this.usersService.createSalesRep(user.id, createSalesRepDto.salesRep);
+    return this.usersService.createSalesRep(user.id, {
+      territory: createSalesRepDto.territory,
+      region: createSalesRepDto.region,
+      active: createSalesRepDto.active ?? true
+    });
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiResponse({ status: 200, description: 'User found', type: User })
-  async findOne(@Param('id') id: string): Promise<User> {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<Omit<User, 'salesRep'>> {
+    return this.usersService.findById(id);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User updated successfully', type: User })
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<User> {
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<Omit<User, 'salesRep'>> {
     return this.usersService.update(id, updateUserDto);
   }
 

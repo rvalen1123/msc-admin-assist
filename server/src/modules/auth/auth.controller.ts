@@ -8,7 +8,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(private readonly authService: AuthService) {}
 
   @Post('login')
   @ApiOperation({ summary: 'User login' })
@@ -28,7 +28,11 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async refreshToken(@Body() refreshTokenDto: RefreshTokenDto) {
-    const user = await this.authService.validateToken(refreshTokenDto.token);
+    const payload = await this.authService.validateToken(refreshTokenDto.token);
+    const user = await this.authService.findUserById(payload.sub);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
     return this.authService.refreshToken(user);
   }
 } 

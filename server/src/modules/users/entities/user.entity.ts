@@ -18,11 +18,10 @@ export class User {
 
   @ApiProperty({ enum: UserRole, example: UserRole.ADMIN })
   @Column({
-    type: 'enum',
-    enum: UserRole,
+    type: 'varchar',
     default: UserRole.CUSTOMER,
   })
-  role: UserRole;
+  role: string;
 
   @ApiProperty({ example: 'John' })
   @Column({ nullable: true })
@@ -46,5 +45,5 @@ export class User {
 
   @OneToOne(() => SalesRep, salesRep => salesRep.user)
   @JoinColumn()
-  salesRep: SalesRep;
+  salesRep?: SalesRep;
 } 
