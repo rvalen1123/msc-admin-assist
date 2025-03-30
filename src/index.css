@@ -115,15 +115,15 @@
   }
   
   .form-step-active {
-    @apply bg-primary;
+    @apply bg-gradient-to-r from-blue-500 to-blue-600 ring-2 ring-blue-200;
   }
   
   .form-step-completed {
-    @apply bg-green-500;
+    @apply bg-gradient-to-r from-green-500 to-green-600;
   }
   
   .form-step-pending {
-    @apply bg-gray-300 text-gray-600;
+    @apply bg-gray-100 text-gray-500 border border-gray-300;
   }
   
   .form-input {

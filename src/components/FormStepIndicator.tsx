@@ -2,6 +2,7 @@
 import React from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
 interface FormStepIndicatorProps {
   currentStep: number;
@@ -33,7 +34,7 @@ const FormStepIndicator: React.FC<FormStepIndicatorProps> = ({
             >
               <button
                 className={cn(
-                  "form-step z-10",
+                  "form-step z-10 transition-all duration-200 shadow-sm",
                   isActive ? "form-step-active" : "",
                   isCompleted ? "form-step-completed" : "",
                   !isActive && !isCompleted ? "form-step-pending" : "",
@@ -70,10 +71,10 @@ const FormStepIndicator: React.FC<FormStepIndicatorProps> = ({
         </span>
       </div>
       
-      <div className="w-full bg-gray-200 rounded-full h-2.5 sm:hidden">
-        <div
-          className="bg-primary h-2.5 rounded-full"
-          style={{ width: `${(currentStep / steps.length) * 100}%` }}
+      <div className="sm:hidden w-full px-2">
+        <Progress 
+          value={(currentStep / steps.length) * 100} 
+          className="h-2 rounded-full w-full"
         />
       </div>
     </div>
