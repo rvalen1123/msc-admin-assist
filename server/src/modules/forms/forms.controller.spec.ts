@@ -3,10 +3,11 @@ import { FormsController } from './forms.controller';
 import { FormsService } from './forms.service';
 import { CreateFormTemplateDto } from './dto/create-form-template.dto';
 import { CreateFormSubmissionDto } from './dto/create-form-submission.dto';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../modules/users/enums/user-role.enum';
 import { Response } from 'express';
 import { TestHelper } from '../../common/testing/test-helper';
 import { mockFormsService } from '../../common/testing/mock-services';
+import { SubmissionStatus } from './enums/submission-status.enum';
 
 describe('FormsController', () => {
   let controller: FormsController;
@@ -161,7 +162,7 @@ describe('FormsController', () => {
   describe('updateSubmissionStatus', () => {
     it('should update submission status', async () => {
       const submissionId = '1';
-      const status = 'COMPLETED';
+      const status = SubmissionStatus.COMPLETED;
       const expectedSubmission = {
         id: submissionId,
         status,
@@ -170,7 +171,7 @@ describe('FormsController', () => {
 
       mockFormsService.updateSubmissionStatus.mockResolvedValue(expectedSubmission);
 
-      const result = await controller.updateSubmissionStatus(submissionId, { status });
+      const result = await controller.updateSubmissionStatus(submissionId, status);
 
       expect(result).toEqual(expectedSubmission);
       expect(mockFormsService.updateSubmissionStatus).toHaveBeenCalledWith(

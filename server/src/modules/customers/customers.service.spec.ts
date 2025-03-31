@@ -1,23 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomersService } from './customers.service';
-import { CustomersModule } from './customers.module';
 import { NotFoundException } from '@nestjs/common';
-import { createTestingModule, mockPrismaService } from '../../test/setup';
+import { TestHelper } from '../../common/testing/test-helper';
+import { mockPrismaService } from '../../common/testing/mock-services';
 
 describe('CustomersService', () => {
   let service: CustomersService;
 
   beforeEach(async () => {
-    const module: TestingModule = await createTestingModule(CustomersModule);
+    const module: TestingModule = await TestHelper.createTestingModule([
+      CustomersService,
+    ]);
     service = module.get<CustomersService>(CustomersService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  afterEach(() => {
+    TestHelper.resetAllMocks();
   });
 
   describe('create', () => {
     it('should create a customer with contacts', async () => {
+      const customerId = 'customer-uuid-1';
+      const contactId = 'contact-uuid-1';
+      const timestamp = new Date();
+
       const createCustomerDto = {
         name: 'Test Customer',
         email: 'test@example.com',
@@ -30,16 +36,36 @@ describe('CustomersService', () => {
         ],
       };
 
+      // Mock the response with UUID and all fields that will be returned
       const expectedCustomer = {
-        id: '1',
-        ...createCustomerDto,
-        contacts: createCustomerDto.contacts.map(contact => ({
-          id: '1',
-          customerId: '1',
-          ...contact,
-        })),
+        id: customerId,
+        name: 'Test Customer',
+        email: 'test@example.com',
+        phone: null,
+        company: null,
+        addressLine1: null,
+        addressLine2: null,
+        city: null,
+        state: null,
+        zipCode: null,
+        country: null,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+        contacts: [
+          {
+            id: contactId,
+            customerId,
+            name: 'John Doe',
+            email: 'john@example.com',
+            isPrimary: true,
+            phone: null,
+            title: null,
+            createdAt: timestamp,
+          }
+        ],
       };
 
+      // Mock the database create response
       mockPrismaService.customer.create.mockResolvedValue(expectedCustomer);
 
       const result = await service.create(createCustomerDto);
@@ -62,18 +88,36 @@ describe('CustomersService', () => {
 
   describe('findAll', () => {
     it('should return all customers with their contacts', async () => {
+      const customerId = 'customer-uuid-1';
+      const contactId = 'contact-uuid-1';
+      const timestamp = new Date();
+
       const expectedCustomers = [
         {
-          id: '1',
-          name: 'Customer 1',
-          email: 'customer1@example.com',
+          id: customerId,
+          name: 'Test Customer',
+          email: 'test@example.com',
+          phone: null,
+          company: null,
+          addressLine1: null,
+          addressLine2: null,
+          city: null,
+          state: null,
+          zipCode: null,
+          country: null,
+          createdAt: timestamp,
+          updatedAt: timestamp,
           contacts: [
             {
-              id: '1',
-              customerId: '1',
-              name: 'Contact 1',
-              email: 'contact1@example.com',
-            },
+              id: contactId,
+              customerId,
+              name: 'John Doe',
+              email: 'john@example.com',
+              isPrimary: true,
+              phone: null,
+              title: null,
+              createdAt: timestamp,
+            }
           ],
         },
       ];
@@ -93,18 +137,35 @@ describe('CustomersService', () => {
 
   describe('findOne', () => {
     it('should return a customer by id', async () => {
-      const customerId = '1';
+      const customerId = 'customer-uuid-1';
+      const contactId = 'contact-uuid-1';
+      const timestamp = new Date();
+
       const expectedCustomer = {
         id: customerId,
         name: 'Test Customer',
         email: 'test@example.com',
+        phone: null,
+        company: null,
+        addressLine1: null,
+        addressLine2: null,
+        city: null,
+        state: null,
+        zipCode: null,
+        country: null,
+        createdAt: timestamp,
+        updatedAt: timestamp,
         contacts: [
           {
-            id: '1',
-            customerId: '1',
-            name: 'Contact 1',
-            email: 'contact1@example.com',
-          },
+            id: contactId,
+            customerId,
+            name: 'John Doe',
+            email: 'john@example.com',
+            isPrimary: true,
+            phone: null,
+            title: null,
+            createdAt: timestamp,
+          }
         ],
       };
 
@@ -122,7 +183,7 @@ describe('CustomersService', () => {
     });
 
     it('should throw NotFoundException when customer is not found', async () => {
-      const customerId = '1';
+      const customerId = 'non-existent-id';
       mockPrismaService.customer.findUnique.mockResolvedValue(null);
 
       await expect(service.findOne(customerId)).rejects.toThrow(NotFoundException);
@@ -131,7 +192,9 @@ describe('CustomersService', () => {
 
   describe('update', () => {
     it('should update a customer', async () => {
-      const customerId = '1';
+      const customerId = 'customer-uuid-1';
+      const timestamp = new Date();
+
       const updateCustomerDto = {
         name: 'Updated Customer',
         email: 'updated@example.com',
@@ -139,7 +202,18 @@ describe('CustomersService', () => {
 
       const expectedCustomer = {
         id: customerId,
-        ...updateCustomerDto,
+        name: 'Updated Customer',
+        email: 'updated@example.com',
+        phone: null,
+        company: null,
+        addressLine1: null,
+        addressLine2: null,
+        city: null,
+        state: null,
+        zipCode: null,
+        country: null,
+        createdAt: timestamp,
+        updatedAt: timestamp,
         contacts: [],
       };
 
@@ -158,13 +232,16 @@ describe('CustomersService', () => {
     });
 
     it('should throw NotFoundException when updating non-existent customer', async () => {
-      const customerId = '1';
+      const customerId = 'non-existent-id';
       const updateCustomerDto = {
         name: 'Updated Customer',
         email: 'updated@example.com',
       };
 
-      mockPrismaService.customer.update.mockRejectedValue(new Error('Record not found'));
+      const prismaError = new Error('Record to update not found');
+      // Add the P2025 code which is Prisma's "Record not found" error code
+      prismaError['code'] = 'P2025';
+      mockPrismaService.customer.update.mockRejectedValue(prismaError);
 
       await expect(service.update(customerId, updateCustomerDto)).rejects.toThrow(NotFoundException);
     });
@@ -172,7 +249,7 @@ describe('CustomersService', () => {
 
   describe('remove', () => {
     it('should delete a customer', async () => {
-      const customerId = '1';
+      const customerId = 'customer-uuid-1';
       mockPrismaService.customer.delete.mockResolvedValue({ id: customerId });
 
       const result = await service.remove(customerId);
@@ -184,8 +261,11 @@ describe('CustomersService', () => {
     });
 
     it('should throw NotFoundException when deleting non-existent customer', async () => {
-      const customerId = '1';
-      mockPrismaService.customer.delete.mockRejectedValue(new Error('Record not found'));
+      const customerId = 'non-existent-id';
+      const prismaError = new Error('Record to delete not found');
+      // Add the P2025 code which is Prisma's "Record not found" error code
+      prismaError['code'] = 'P2025';
+      mockPrismaService.customer.delete.mockRejectedValue(prismaError);
 
       await expect(service.remove(customerId)).rejects.toThrow(NotFoundException);
     });
@@ -193,14 +273,21 @@ describe('CustomersService', () => {
 
   describe('findCustomerContacts', () => {
     it('should return all contacts for a customer', async () => {
-      const customerId = '1';
+      const customerId = 'customer-uuid-1';
+      const contactId = 'contact-uuid-1';
+      const timestamp = new Date();
+
       const expectedContacts = [
         {
-          id: '1',
-          customerId: '1',
-          name: 'Contact 1',
-          email: 'contact1@example.com',
-        },
+          id: contactId,
+          customerId,
+          name: 'John Doe',
+          email: 'john@example.com',
+          isPrimary: true,
+          phone: null,
+          title: null,
+          createdAt: timestamp,
+        }
       ];
 
       mockPrismaService.customer.findUnique.mockResolvedValue({
@@ -220,7 +307,7 @@ describe('CustomersService', () => {
     });
 
     it('should throw NotFoundException when customer is not found', async () => {
-      const customerId = '1';
+      const customerId = 'non-existent-id';
       mockPrismaService.customer.findUnique.mockResolvedValue(null);
 
       await expect(service.findCustomerContacts(customerId)).rejects.toThrow(NotFoundException);

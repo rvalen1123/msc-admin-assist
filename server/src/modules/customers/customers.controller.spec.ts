@@ -3,38 +3,25 @@ import { CustomersController } from './customers.controller';
 import { CustomersService } from './customers.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../modules/users/enums/user-role.enum';
+import { TestHelper } from '../../common/testing/test-helper';
+import { mockCustomersService } from '../../common/testing/mock-services';
 
 describe('CustomersController', () => {
   let controller: CustomersController;
   let service: CustomersService;
 
-  const mockCustomersService = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
-    findCustomerContacts: jest.fn(),
-  };
-
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [CustomersController],
-      providers: [
-        {
-          provide: CustomersService,
-          useValue: mockCustomersService,
-        },
-      ],
-    }).compile();
+    const module: TestingModule = await TestHelper.createTestingModule([
+      CustomersController,
+    ]);
 
     controller = module.get<CustomersController>(CustomersController);
     service = module.get<CustomersService>(CustomersService);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  afterEach(() => {
+    TestHelper.resetAllMocks();
   });
 
   describe('create', () => {
@@ -42,21 +29,27 @@ describe('CustomersController', () => {
       const createCustomerDto: CreateCustomerDto = {
         name: 'Test Customer',
         email: 'test@example.com',
+        phone: '1234567890',
+        company: 'Test Company',
+        addressLine1: '123 Main St',
+        city: 'Test City',
+        state: 'TS',
+        zipCode: '12345',
+        country: 'Test Country',
         contacts: [
           {
             name: 'John Doe',
             email: 'john@example.com',
+            isPrimary: true,
           },
         ],
       };
 
       const expectedResult = {
-        id: '1',
+        id: 'customer-1',
         ...createCustomerDto,
-        contacts: createCustomerDto.contacts.map(contact => ({
-          id: '1',
-          ...contact,
-        })),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       mockCustomersService.create.mockResolvedValue(expectedResult);
@@ -69,67 +62,55 @@ describe('CustomersController', () => {
   });
 
   describe('findAll', () => {
-    it('should return all customers', async () => {
-      const expectedCustomers = [
+    it('should return an array of customers', async () => {
+      const expectedResult = [
         {
-          id: '1',
-          name: 'Customer 1',
-          contacts: [],
-        },
-        {
-          id: '2',
-          name: 'Customer 2',
-          contacts: [],
+          id: 'customer-1',
+          name: 'Test Customer',
+          email: 'test@example.com',
         },
       ];
 
-      mockCustomersService.findAll.mockResolvedValue(expectedCustomers);
+      mockCustomersService.findAll.mockResolvedValue(expectedResult);
 
       const result = await controller.findAll();
 
-      expect(result).toEqual(expectedCustomers);
+      expect(result).toEqual(expectedResult);
       expect(mockCustomersService.findAll).toHaveBeenCalled();
     });
   });
 
   describe('findOne', () => {
-    it('should return a customer by id', async () => {
-      const customerId = '1';
-      const expectedCustomer = {
+    it('should return a single customer', async () => {
+      const customerId = 'customer-1';
+      const expectedResult = {
         id: customerId,
         name: 'Test Customer',
-        contacts: [],
+        email: 'test@example.com',
       };
 
-      mockCustomersService.findOne.mockResolvedValue(expectedCustomer);
+      mockCustomersService.findOne.mockResolvedValue(expectedResult);
 
       const result = await controller.findOne(customerId);
 
-      expect(result).toEqual(expectedCustomer);
+      expect(result).toEqual(expectedResult);
       expect(mockCustomersService.findOne).toHaveBeenCalledWith(customerId);
     });
   });
 
   describe('update', () => {
     it('should update a customer', async () => {
-      const customerId = '1';
+      const customerId = 'customer-1';
       const updateCustomerDto: UpdateCustomerDto = {
         name: 'Updated Customer',
-        contacts: [
-          {
-            name: 'Jane Doe',
-            email: 'jane@example.com',
-          },
-        ],
+        phone: '9876543210',
       };
 
       const expectedResult = {
         id: customerId,
-        ...updateCustomerDto,
-        contacts: updateCustomerDto.contacts.map(contact => ({
-          id: '1',
-          ...contact,
-        })),
+        name: 'Updated Customer',
+        email: 'test@example.com',
+        phone: '9876543210',
       };
 
       mockCustomersService.update.mockResolvedValue(expectedResult);
@@ -142,27 +123,27 @@ describe('CustomersController', () => {
   });
 
   describe('remove', () => {
-    it('should delete a customer', async () => {
-      const customerId = '1';
-      const expectedResult = { message: 'Customer deleted successfully' };
-
-      mockCustomersService.remove.mockResolvedValue(expectedResult);
+    it('should remove a customer', async () => {
+      const customerId = 'customer-1';
+      mockCustomersService.remove.mockResolvedValue({ message: 'Customer deleted successfully' });
 
       const result = await controller.remove(customerId);
 
-      expect(result).toEqual(expectedResult);
+      expect(result).toEqual({ message: 'Customer deleted successfully' });
       expect(mockCustomersService.remove).toHaveBeenCalledWith(customerId);
     });
   });
 
   describe('findCustomerContacts', () => {
-    it('should return all contacts for a customer', async () => {
-      const customerId = '1';
+    it('should return customer contacts', async () => {
+      const customerId = 'customer-1';
       const expectedContacts = [
         {
-          id: '1',
+          id: 'contact-1',
+          customerId,
           name: 'John Doe',
           email: 'john@example.com',
+          isPrimary: true,
         },
       ];
 

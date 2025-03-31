@@ -2,139 +2,133 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { UserRole } from '../../modules/users/enums/user-role.enum';
 import { OrderStatus } from './enums/order-status.enum';
-import { UserRole } from '@prisma/client';
+import { NotFoundException } from '@nestjs/common';
+import { TestHelper } from '../../common/testing/test-helper';
+import { mockOrdersService } from '../../common/testing/mock-services';
 
 describe('OrdersController', () => {
   let controller: OrdersController;
   let service: OrdersService;
 
-  const mockOrdersService = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    updateStatus: jest.fn(),
-  };
-
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [OrdersController],
-      providers: [
-        {
-          provide: OrdersService,
-          useValue: mockOrdersService,
-        },
-      ],
-    }).compile();
+    const module: TestingModule = await TestHelper.createTestingModule([
+      OrdersController,
+    ]);
 
     controller = module.get<OrdersController>(OrdersController);
     service = module.get<OrdersService>(OrdersService);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    TestHelper.resetAllMocks();
   });
 
   describe('create', () => {
-    const mockCreateOrderDto: CreateOrderDto = {
-      customerId: 'customer-1',
-      salesRepId: 'sales-rep-1',
-      items: [
-        {
-          productId: 'product-1',
-          quantity: 2,
-          unitPrice: 100,
-        },
-      ],
-      shippingAddress: '123 Main St',
-      billingAddress: '123 Main St',
-      notes: 'Test order',
-    };
+    it('should create an order', async () => {
+      const createOrderDto: CreateOrderDto = {
+        customerId: 'customer-1',
+        salesRepId: 'sales-rep-1',
+        items: [
+          {
+            productId: 'product-1',
+            quantity: 2,
+            unitPrice: 100,
+          },
+        ],
+        shippingAddress: '123 Test St',
+        billingAddress: '123 Test St',
+        notes: 'Test order',
+      };
 
-    const mockOrder = {
-      id: 'order-1',
-      orderNumber: 'ORD2403300001',
-      customerId: 'customer-1',
-      salesRepId: 'sales-rep-1',
-      status: OrderStatus.DRAFT,
-      totalAmount: 200,
-      items: [],
-      customer: {},
-      salesRep: {},
-    };
+      const expectedResult = {
+        id: 'order-1',
+        orderNumber: 'ORD-001',
+        ...createOrderDto,
+        status: OrderStatus.PENDING,
+        totalAmount: 200,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-    it('should create a new order', async () => {
-      mockOrdersService.create.mockResolvedValue(mockOrder);
+      mockOrdersService.create.mockResolvedValue(expectedResult);
 
-      const result = await controller.create(mockCreateOrderDto);
+      const result = await controller.create(createOrderDto);
 
-      expect(result).toEqual(mockOrder);
-      expect(mockOrdersService.create).toHaveBeenCalledWith(mockCreateOrderDto);
+      expect(result).toEqual(expectedResult);
+      expect(mockOrdersService.create).toHaveBeenCalledWith(createOrderDto);
     });
   });
 
   describe('findAll', () => {
-    const mockOrders = [
-      {
-        id: 'order-1',
-        orderNumber: 'ORD2403300001',
-        items: [],
-        customer: {},
-        salesRep: {},
-      },
-    ];
-
     it('should return all orders', async () => {
-      mockOrdersService.findAll.mockResolvedValue(mockOrders);
+      const expectedOrders = [
+        {
+          id: 'order-1',
+          orderNumber: 'ORD-001',
+          status: OrderStatus.PENDING,
+        },
+        {
+          id: 'order-2',
+          orderNumber: 'ORD-002',
+          status: OrderStatus.CONFIRMED,
+        },
+      ];
+
+      mockOrdersService.findAll.mockResolvedValue(expectedOrders);
 
       const result = await controller.findAll();
 
-      expect(result).toEqual(mockOrders);
+      expect(result).toEqual(expectedOrders);
       expect(mockOrdersService.findAll).toHaveBeenCalled();
     });
   });
 
   describe('findOne', () => {
-    const mockOrder = {
-      id: 'order-1',
-      orderNumber: 'ORD2403300001',
-      items: [],
-      customer: {},
-      salesRep: {},
-    };
-
     it('should return an order by id', async () => {
-      mockOrdersService.findOne.mockResolvedValue(mockOrder);
+      const orderId = 'order-1';
+      const expectedOrder = {
+        id: orderId,
+        orderNumber: 'ORD-001',
+        status: OrderStatus.PENDING,
+      };
 
-      const result = await controller.findOne('order-1');
+      mockOrdersService.findOne.mockResolvedValue(expectedOrder);
 
-      expect(result).toEqual(mockOrder);
-      expect(mockOrdersService.findOne).toHaveBeenCalledWith('order-1');
+      const result = await controller.findOne(orderId);
+
+      expect(result).toEqual(expectedOrder);
+      expect(mockOrdersService.findOne).toHaveBeenCalledWith(orderId);
+    });
+
+    it('should throw NotFoundException when order not found', async () => {
+      const orderId = 'not-found';
+
+      mockOrdersService.findOne.mockRejectedValue(new NotFoundException());
+
+      await expect(controller.findOne(orderId)).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('updateStatus', () => {
-    const mockOrder = {
-      id: 'order-1',
-      orderNumber: 'ORD2403300001',
-      status: OrderStatus.SHIPPED,
-      items: [],
-      customer: {},
-      salesRep: {},
-    };
+    it('should update an order status', async () => {
+      const orderId = 'order-1';
+      const newStatus = OrderStatus.SHIPPED;
+      
+      const expectedOrder = {
+        id: orderId,
+        orderNumber: 'ORD-001',
+        status: newStatus,
+        shippedAt: new Date(),
+      };
 
-    it('should update order status', async () => {
-      mockOrdersService.updateStatus.mockResolvedValue(mockOrder);
+      mockOrdersService.updateStatus.mockResolvedValue(expectedOrder);
 
-      const result = await controller.updateStatus('order-1', {
-        status: OrderStatus.SHIPPED,
-      });
+      const result = await controller.updateStatus(orderId, newStatus);
 
-      expect(result).toEqual(mockOrder);
-      expect(mockOrdersService.updateStatus).toHaveBeenCalledWith(
-        'order-1',
-        OrderStatus.SHIPPED,
-      );
+      expect(result).toEqual(expectedOrder);
+      expect(mockOrdersService.updateStatus).toHaveBeenCalledWith(orderId, newStatus);
     });
   });
 }); 

@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../modules/users/enums/user-role.enum';
 
 export const mockPrismaService = {
   user: {
@@ -96,6 +96,8 @@ export const mockProductsService = {
   findOne: jest.fn(),
   update: jest.fn(),
   remove: jest.fn(),
+  findByManufacturer: jest.fn(),
+  updatePrice: jest.fn(),
 };
 
 export const mockCustomersService = {

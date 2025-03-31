@@ -3,60 +3,41 @@ import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../../modules/users/enums/user-role.enum';
+import { TestHelper } from '../../common/testing/test-helper';
+import { mockProductsService } from '../../common/testing/mock-services';
 
 describe('ProductsController', () => {
   let controller: ProductsController;
   let service: ProductsService;
 
-  const mockProductsService = {
-    create: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    update: jest.fn(),
-    remove: jest.fn(),
-    findByManufacturer: jest.fn(),
-    updatePrice: jest.fn(),
-  };
-
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [ProductsController],
-      providers: [
-        {
-          provide: ProductsService,
-          useValue: mockProductsService,
-        },
-      ],
-    }).compile();
+    const module: TestingModule = await TestHelper.createTestingModule([
+      ProductsController,
+    ]);
 
     controller = module.get<ProductsController>(ProductsController);
     service = module.get<ProductsService>(ProductsService);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  afterEach(() => {
+    TestHelper.resetAllMocks();
   });
 
   describe('create', () => {
     it('should create a product', async () => {
       const createProductDto: CreateProductDto = {
         name: 'Test Product',
-        manufacturerId: '1',
         description: 'Test Description',
-        price: 99.99,
-        qCode: 'TEST-001',
-        nationalAsp: 89.99,
-        mue: 'MUE-001',
+        price: 100,
+        manufacturerId: 'manufacturer-1',
       };
 
       const expectedResult = {
-        id: '1',
+        id: 'product-1',
         ...createProductDto,
-        manufacturer: {
-          id: '1',
-          name: 'Test Manufacturer',
-        },
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       mockProductsService.create.mockResolvedValue(expectedResult);
@@ -69,71 +50,60 @@ describe('ProductsController', () => {
   });
 
   describe('findAll', () => {
-    it('should return all products', async () => {
-      const expectedProducts = [
+    it('should return an array of products', async () => {
+      const expectedResult = [
         {
-          id: '1',
-          name: 'Product 1',
-          manufacturer: {
-            id: '1',
-            name: 'Manufacturer 1',
-          },
-        },
-        {
-          id: '2',
-          name: 'Product 2',
-          manufacturer: {
-            id: '2',
-            name: 'Manufacturer 2',
-          },
+          id: 'product-1',
+          name: 'Test Product',
+          description: 'Test Description',
+          price: 100,
+          manufacturerId: 'manufacturer-1',
         },
       ];
 
-      mockProductsService.findAll.mockResolvedValue(expectedProducts);
+      mockProductsService.findAll.mockResolvedValue(expectedResult);
 
       const result = await controller.findAll();
 
-      expect(result).toEqual(expectedProducts);
+      expect(result).toEqual(expectedResult);
       expect(mockProductsService.findAll).toHaveBeenCalled();
     });
   });
 
   describe('findOne', () => {
-    it('should return a product by id', async () => {
-      const productId = '1';
-      const expectedProduct = {
+    it('should return a single product', async () => {
+      const productId = 'product-1';
+      const expectedResult = {
         id: productId,
         name: 'Test Product',
-        manufacturer: {
-          id: '1',
-          name: 'Test Manufacturer',
-        },
+        description: 'Test Description',
+        price: 100,
+        manufacturerId: 'manufacturer-1',
       };
 
-      mockProductsService.findOne.mockResolvedValue(expectedProduct);
+      mockProductsService.findOne.mockResolvedValue(expectedResult);
 
       const result = await controller.findOne(productId);
 
-      expect(result).toEqual(expectedProduct);
+      expect(result).toEqual(expectedResult);
       expect(mockProductsService.findOne).toHaveBeenCalledWith(productId);
     });
   });
 
   describe('update', () => {
     it('should update a product', async () => {
-      const productId = '1';
+      const productId = 'product-1';
       const updateProductDto: UpdateProductDto = {
         name: 'Updated Product',
-        price: 149.99,
+        price: 150,
       };
 
       const expectedResult = {
         id: productId,
-        ...updateProductDto,
-        manufacturer: {
-          id: '1',
-          name: 'Test Manufacturer',
-        },
+        name: 'Updated Product',
+        description: 'Test Description',
+        price: 150,
+        manufacturerId: 'manufacturer-1',
       };
 
       mockProductsService.update.mockResolvedValue(expectedResult);
@@ -146,62 +116,57 @@ describe('ProductsController', () => {
   });
 
   describe('remove', () => {
-    it('should delete a product', async () => {
-      const productId = '1';
-      const expectedResult = { message: 'Product deleted successfully' };
-
-      mockProductsService.remove.mockResolvedValue(expectedResult);
+    it('should remove a product', async () => {
+      const productId = 'product-1';
+      mockProductsService.remove.mockResolvedValue({ id: productId, deleted: true });
 
       const result = await controller.remove(productId);
 
-      expect(result).toEqual(expectedResult);
+      expect(result).toEqual({ id: productId, deleted: true });
       expect(mockProductsService.remove).toHaveBeenCalledWith(productId);
     });
   });
 
   describe('findByManufacturer', () => {
-    it('should return all products for a manufacturer', async () => {
-      const manufacturerId = '1';
-      const expectedProducts = [
+    it('should return products by manufacturer ID', async () => {
+      const manufacturerId = 'manufacturer-1';
+      const expectedResult = [
         {
-          id: '1',
-          name: 'Product 1',
-          manufacturer: {
-            id: manufacturerId,
-            name: 'Test Manufacturer',
-          },
+          id: 'product-1',
+          name: 'Test Product',
+          description: 'Test Description',
+          price: 100,
+          manufacturerId: manufacturerId,
         },
       ];
 
-      mockProductsService.findByManufacturer.mockResolvedValue(expectedProducts);
+      mockProductsService.findByManufacturer.mockResolvedValue(expectedResult);
 
       const result = await controller.findByManufacturer(manufacturerId);
 
-      expect(result).toEqual(expectedProducts);
+      expect(result).toEqual(expectedResult);
       expect(mockProductsService.findByManufacturer).toHaveBeenCalledWith(manufacturerId);
     });
   });
 
   describe('updatePrice', () => {
     it('should update product price', async () => {
-      const productId = '1';
-      const newPrice = 199.99;
+      const productId = 'product-1';
+      const newPrice = 150;
 
-      const expectedProduct = {
+      const expectedResult = {
         id: productId,
         name: 'Test Product',
+        description: 'Test Description',
         price: newPrice,
-        manufacturer: {
-          id: '1',
-          name: 'Test Manufacturer',
-        },
+        manufacturerId: 'manufacturer-1',
       };
 
-      mockProductsService.updatePrice.mockResolvedValue(expectedProduct);
+      mockProductsService.updatePrice.mockResolvedValue(expectedResult);
 
       const result = await controller.updatePrice(productId, newPrice);
 
-      expect(result).toEqual(expectedProduct);
+      expect(result).toEqual(expectedResult);
       expect(mockProductsService.updatePrice).toHaveBeenCalledWith(productId, newPrice);
     });
   });
