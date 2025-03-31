@@ -1,11 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import * as dotenv from 'dotenv';
-
-// Load test environment variables
-dotenv.config({ path: '.env.test' });
+import { UserRole } from '@prisma/client';
 
 export const mockPrismaService = {
   user: {
@@ -36,10 +29,18 @@ export const mockPrismaService = {
     update: jest.fn(),
     delete: jest.fn(),
   },
+  formTemplate: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
   order: {
     create: jest.fn(),
     findMany: jest.fn(),
     findUnique: jest.fn(),
+    findFirst: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
     createMany: jest.fn(),
@@ -70,16 +71,6 @@ export const mockPrismaService = {
     update: jest.fn(),
     delete: jest.fn(),
   },
-  formTemplate: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    createMany: jest.fn(),
-    updateMany: jest.fn(),
-    deleteMany: jest.fn(),
-  },
   customerContact: {
     create: jest.fn(),
     findMany: jest.fn(),
@@ -99,58 +90,62 @@ export const mockPrismaService = {
   $disconnect: jest.fn(),
 };
 
+export const mockProductsService = {
+  create: jest.fn(),
+  findAll: jest.fn(),
+  findOne: jest.fn(),
+  update: jest.fn(),
+  remove: jest.fn(),
+};
+
+export const mockCustomersService = {
+  create: jest.fn(),
+  findAll: jest.fn(),
+  findOne: jest.fn(),
+  update: jest.fn(),
+  remove: jest.fn(),
+  findCustomerContacts: jest.fn(),
+};
+
+export const mockJwtService = {
+  sign: jest.fn(),
+  verify: jest.fn(),
+  decode: jest.fn(),
+};
+
 export const mockConfigService = {
   get: jest.fn((key: string) => {
     const config = {
       'DOCUSEAL_API_KEY': 'test-api-key',
       'DOCUSEAL_API_URL': 'https://test.docuseal.co',
-      'AZURE_SQL_CONNECTION_STRING': process.env.AZURE_SQL_CONNECTION_STRING,
-      'JWT_SECRET': process.env.JWT_SECRET,
-      'JWT_EXPIRATION': process.env.JWT_EXPIRATION,
-      'AZURE_STORAGE_CONNECTION_STRING': process.env.AZURE_STORAGE_CONNECTION_STRING,
-      'AZURE_STORAGE_CONTAINER': process.env.AZURE_STORAGE_CONTAINER,
-      'SENDGRID_API_KEY': process.env.SENDGRID_API_KEY,
-      'REDIS_URL': process.env.REDIS_URL,
+      'AZURE_SQL_CONNECTION_STRING': 'test-connection-string',
+      'JWT_SECRET': 'test-jwt-secret',
+      'JWT_EXPIRATION': '1h',
+      'AZURE_STORAGE_CONNECTION_STRING': 'test-storage-connection',
+      'AZURE_STORAGE_CONTAINER': 'test-container',
+      'SENDGRID_API_KEY': 'test-sendgrid-key',
+      'REDIS_URL': 'redis://localhost:6379',
     };
     return config[key];
   }),
 };
 
-// Create a real JWT service instance for testing
-const jwtService = new JwtService({
-  secret: process.env.JWT_SECRET,
-  signOptions: { expiresIn: process.env.JWT_EXPIRATION },
-});
-
-export const mockJwtService = {
-  sign: jest.fn((payload: any) => jwtService.sign(payload, { expiresIn: process.env.JWT_EXPIRATION })),
-  verify: jest.fn((token: string) => jwtService.verify(token)),
+export const mockFormsService = {
+  createTemplate: jest.fn(),
+  findAllTemplates: jest.fn(),
+  findTemplateById: jest.fn(),
+  createSubmission: jest.fn(),
+  findAllSubmissions: jest.fn(),
+  findSubmissionById: jest.fn(),
+  updateSubmissionStatus: jest.fn(),
+  getSubmissionPdf: jest.fn(),
 };
 
-export const createTestingModule = async (module: any) => {
-  const testingModule = await Test.createTestingModule({
-    imports: [
-      ConfigModule.forRoot({
-        isGlobal: true,
-        load: [() => mockConfigService],
-      }),
-      module,
-    ],
-    providers: [
-      {
-        provide: 'PrismaService',
-        useValue: mockPrismaService,
-      },
-      {
-        provide: ConfigService,
-        useValue: mockConfigService,
-      },
-      {
-        provide: JwtService,
-        useValue: mockJwtService,
-      },
-    ],
-  }).compile();
-
-  return testingModule;
+export const mockOrdersService = {
+  create: jest.fn(),
+  findAll: jest.fn(),
+  findOne: jest.fn(),
+  update: jest.fn(),
+  remove: jest.fn(),
+  updateStatus: jest.fn(),
 }; 

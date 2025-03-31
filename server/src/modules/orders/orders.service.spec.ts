@@ -1,10 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersService } from './orders.service';
-import { PrismaService } from '../../common/prisma/prisma.service';
+import { PrismaService } from '../../prisma/prisma.service';
 import { ProductsService } from '../products/products.service';
 import { CustomersService } from '../customers/customers.service';
 import { OrderStatus } from './enums/order-status.enum';
 import { NotFoundException } from '@nestjs/common';
+import { TestHelper } from '../../common/testing/test-helper';
+import { 
+  mockPrismaService, 
+  mockProductsService, 
+  mockCustomersService 
+} from '../../common/testing/mock-services';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -12,46 +18,10 @@ describe('OrdersService', () => {
   let productsService: ProductsService;
   let customersService: CustomersService;
 
-  const mockPrismaService = {
-    order: {
-      create: jest.fn(),
-      findMany: jest.fn(),
-      findUnique: jest.fn(),
-      findFirst: jest.fn(),
-      update: jest.fn(),
-    },
-    user: {
-      findUnique: jest.fn(),
-    },
-    $transaction: jest.fn((callback) => callback(mockPrismaService)),
-  };
-
-  const mockProductsService = {
-    findOne: jest.fn(),
-  };
-
-  const mockCustomersService = {
-    findOne: jest.fn(),
-  };
-
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        OrdersService,
-        {
-          provide: PrismaService,
-          useValue: mockPrismaService,
-        },
-        {
-          provide: ProductsService,
-          useValue: mockProductsService,
-        },
-        {
-          provide: CustomersService,
-          useValue: mockCustomersService,
-        },
-      ],
-    }).compile();
+    const module: TestingModule = await TestHelper.createTestingModule([
+      OrdersService,
+    ]);
 
     service = module.get<OrdersService>(OrdersService);
     prismaService = module.get<PrismaService>(PrismaService);
@@ -60,7 +30,7 @@ describe('OrdersService', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    TestHelper.resetAllMocks();
   });
 
   describe('create', () => {
@@ -261,9 +231,9 @@ describe('OrdersService', () => {
     it('should throw NotFoundException when order not found', async () => {
       mockPrismaService.order.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.updateStatus('order-1', OrderStatus.SHIPPED),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.updateStatus('order-1', OrderStatus.SHIPPED)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 }); 

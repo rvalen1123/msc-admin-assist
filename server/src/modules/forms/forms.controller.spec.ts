@@ -5,39 +5,24 @@ import { CreateFormTemplateDto } from './dto/create-form-template.dto';
 import { CreateFormSubmissionDto } from './dto/create-form-submission.dto';
 import { UserRole } from '@prisma/client';
 import { Response } from 'express';
+import { TestHelper } from '../../common/testing/test-helper';
+import { mockFormsService } from '../../common/testing/mock-services';
 
 describe('FormsController', () => {
   let controller: FormsController;
   let formsService: FormsService;
 
-  const mockFormsService = {
-    createTemplate: jest.fn(),
-    findAllTemplates: jest.fn(),
-    findTemplateById: jest.fn(),
-    createSubmission: jest.fn(),
-    findAllSubmissions: jest.fn(),
-    findSubmissionById: jest.fn(),
-    updateSubmissionStatus: jest.fn(),
-    getSubmissionPdf: jest.fn(),
-  };
-
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [FormsController],
-      providers: [
-        {
-          provide: FormsService,
-          useValue: mockFormsService,
-        },
-      ],
-    }).compile();
+    const module: TestingModule = await TestHelper.createTestingModule([
+      FormsController,
+    ]);
 
     controller = module.get<FormsController>(FormsController);
     formsService = module.get<FormsService>(FormsService);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    TestHelper.resetAllMocks();
   });
 
   describe('createTemplate', () => {
