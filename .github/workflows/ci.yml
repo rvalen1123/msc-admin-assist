@@ -36,11 +36,10 @@ jobs:
       env:
         AZURE_SQL_CONNECTION_STRING: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
 
-    - name: Run tests
+    - name: Run tests with coverage
       run: |
         cd server
-        npm run test
-        npm run test:e2e
+        npm run test:ci
       env:
         AZURE_SQL_CONNECTION_STRING: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
         JWT_SECRET: test_secret
@@ -49,6 +48,36 @@ jobs:
         AZURE_STORAGE_CONTAINER: test-container
         SENDGRID_API_KEY: test
         REDIS_URL: redis://localhost:6379
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./server/coverage/
+        flags: unit-tests
+        name: unit-test-coverage
+        fail_ci_if_error: false
+
+    - name: Upload E2E coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./server/coverage-e2e/
+        flags: e2e-tests
+        name: e2e-test-coverage
+        fail_ci_if_error: false
+
+    - name: Generate coverage badges
+      run: |
+        cd server
+        npm run test:badge
+
+    - name: Commit coverage badges
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add server/README.md
+        git commit -m "docs: update coverage badges [skip ci]" || echo "No changes to commit"
+        git push
 
     - name: Run linting
       run: |

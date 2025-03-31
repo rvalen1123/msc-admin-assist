@@ -10,5 +10,21 @@
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/../src/$1"
   },
-  "testTimeout": 30000
+  "testTimeout": 30000,
+  "collectCoverage": true,
+  "collectCoverageFrom": [
+    "<rootDir>/../src/**/*.ts",
+    "!<rootDir>/../src/**/*.d.ts",
+    "!<rootDir>/../src/main.ts",
+    "!<rootDir>/../src/**/*.module.ts",
+    "!<rootDir>/../src/**/*.dto.ts",
+    "!<rootDir>/../src/**/*.entity.ts",
+    "!<rootDir>/../src/**/*.mock.ts",
+    "!<rootDir>/../src/**/*.enum.ts",
+    "!<rootDir>/../src/**/*.interface.ts",
+    "!<rootDir>/../src/**/*-test.ts",
+    "!<rootDir>/../src/**/index.ts"
+  ],
+  "coverageDirectory": "../coverage-e2e",
+  "coverageReporters": ["json", "lcov", "text", "clover", "json-summary"]
 } 

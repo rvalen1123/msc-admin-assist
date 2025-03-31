@@ -1,147 +1,13 @@
 # MSC Wound Care Admin Portal - Backend
 
+[![CI](https://github.com/[your-org]/msc-admin-assist/actions/workflows/ci.yml/badge.svg)](https://github.com/[your-org]/msc-admin-assist/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/[your-org]/msc-admin-assist/branch/main/graph/badge.svg)](https://codecov.io/gh/[your-org]/msc-admin-assist)
+[![Statements](https://img.shields.io/badge/statements-92.26%25-brightgreen.svg?style=flat)](https://codecov.io/gh/[your-org]/msc-admin-assist)
+[![Branches](https://img.shields.io/badge/branches-60%25-yellow.svg?style=flat)](https://codecov.io/gh/[your-org]/msc-admin-assist)
+[![Functions](https://img.shields.io/badge/functions-95%25-brightgreen.svg?style=flat)](https://codecov.io/gh/[your-org]/msc-admin-assist)
+[![Lines](https://img.shields.io/badge/lines-91.89%25-brightgreen.svg?style=flat)](https://codecov.io/gh/[your-org]/msc-admin-assist)
+
 This is the backend service for the MSC Wound Care Admin Portal, built with NestJS and TypeScript.
-
-## Project Structure
-
-```
-server/
-├── src/
-│   ├── config/                 # Configuration files
-│   │   ├── database.config.ts
-│   │   ├── jwt.config.ts
-│   │   └── aws.config.ts
-│   ├── modules/               # Feature modules
-│   │   ├── auth/             # Authentication module
-│   │   ├── users/            # User management
-│   │   ├── customers/        # Customer management
-│   │   ├── products/         # Product management
-│   │   ├── forms/            # Form management
-│   │   ├── orders/           # Order management
-│   │   └── common/           # Shared module
-│   ├── prisma/               # Prisma schema and migrations
-│   │   ├── schema.prisma
-│   │   └── migrations/       # Database migrations
-│   │       └── 20240330_init/
-│   │           ├── migration.sql
-│   │           ├── rollback.sql
-│   │           ├── seed.sql
-│   │           ├── transform.sql
-│   │           └── verify.sql
-│   ├── common/               # Shared utilities
-│   │   ├── decorators/
-│   │   ├── filters/
-│   │   ├── guards/
-│   │   ├── interceptors/
-│   │   └── pipes/
-│   ├── types/                # TypeScript type definitions
-│   ├── app.module.ts         # Root module
-│   └── main.ts               # Application entry point
-├── test/                     # Test files
-├── .env                      # Environment variables
-├── .env.example             # Example environment variables
-├── package.json             # Project dependencies
-├── tsconfig.json           # TypeScript configuration
-└── Dockerfile              # Container configuration
-```
-
-## Recent Accomplishments
-
-### Database Migration to Azure SQL ✅
-- Successfully migrated from PostgreSQL to Azure SQL
-- Updated Prisma schema for SQL Server compatibility
-- Created comprehensive migration scripts:
-  - Schema creation with proper data types
-  - Data transformation for SQL Server
-  - Sample data seeding
-  - Rollback procedures
-  - Verification scripts
-- Implemented proper indexing and constraints
-- Added data integrity checks
-
-### Infrastructure Setup ✅
-- Migrated from AWS to Azure infrastructure
-- Set up Azure Container Registry (ACR)
-- Configured Azure Container Apps
-- Implemented CI/CD pipeline with GitHub Actions
-- Added monitoring and logging with Azure Monitor
-- Set up proper networking and security
-
-### Security Enhancements ✅
-- Implemented rate limiting
-- Added security headers
-- Enhanced CORS configuration
-- Set up proper authentication and authorization
-- Added input validation and sanitization
-- Implemented secure password handling
-
-### Performance Optimizations ✅
-- Added database indexes for common queries
-- Implemented response compression
-- Set up caching strategy
-- Optimized database queries
-- Added connection pooling
-- Implemented proper error handling
-
-### Testing Infrastructure Improvements ✅
-- Configured Jest for TypeScript testing
-- Created standardized test setup tools:
-  - Centralized test helper utilities
-  - Common mock services with proper typing
-  - Standardized test module creation
-- Implemented proper handling of entity relationships in tests
-- Fixed test data inconsistencies and improved test reliability
-- Added proper handling of JSON data in tests
-- Created custom enum definitions for test data
-- Improved test coverage throughout the codebase
-- Fixed dependency injection in test environment
-
-## Container Configuration
-
-The backend service is containerized using Docker. The container configuration is defined in `Dockerfile`:
-
-```dockerfile
-# Build stage
-FROM node:18-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-# Production stage
-FROM node:18-alpine
-WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-EXPOSE 3000
-CMD ["npm", "run", "start:prod"]
-```
-
-### Container Environment Variables
-
-Required environment variables for the container:
-- `AZURE_SQL_CONNECTION_STRING` - Azure SQL connection string
-- `JWT_SECRET` - JWT secret key
-- `JWT_EXPIRATION` - JWT token expiration time
-- `AZURE_STORAGE_CONNECTION_STRING` - Azure Storage connection string
-- `AZURE_STORAGE_CONTAINER` - Azure Storage container name
-- `SENDGRID_API_KEY` - SendGrid API key
-- `REDIS_URL` - Redis connection string
-- `FRONTEND_URL` - Frontend application URL (for CORS)
-
-### Building and Running the Container
-
-```bash
-# Build the container
-docker build -t msc-wound-care-api .
-
-# Run the container
-docker run -p 3000:3000 \
-  --env-file .env \
-  msc-wound-care-api
-```
 
 ## Getting Started
 
@@ -162,20 +28,7 @@ docker run -p 3000:3000 \
    npx prisma migrate deploy
    ```
 
-4. Seed the database with test data:
-   ```bash
-   npx prisma db seed
-   ```
-   This will create:
-   - Admin user (admin@test.com / admin123)
-   - Sales representatives (salesrep1@test.com, salesrep2@test.com / salesrep123)
-   - Sample manufacturers
-   - Sample products
-   - Sample customers
-   - Sample orders
-   - Sample form templates and submissions
-
-5. Start the development server:
+4. Start the development server:
    ```bash
    npm run start:dev
    ```
@@ -187,6 +40,55 @@ Once the server is running, you can access the Swagger API documentation at:
 http://localhost:3000/api
 ```
 
+## Testing
+
+Run unit tests:
+```bash
+npm run test
+```
+
+Run E2E tests:
+```bash
+npm run test:e2e
+```
+
+Run all tests with coverage:
+```bash
+npm run test:ci
+```
+
+Generate coverage badges:
+```bash
+npm run test:badge
+```
+
+### Test Coverage Configuration
+
+The project uses Jest for testing and has a comprehensive coverage configuration:
+
+- **Coverage Thresholds**: We maintain minimum coverage thresholds for statements, branches, functions, and lines of code. These thresholds are module-specific to ensure appropriate coverage for each part of the application.
+
+- **Coverage Reports**: The following coverage reports are generated:
+  - JSON summary for badges and metrics
+  - LCOV for integration with external tools
+  - HTML reports for local viewing
+  - Clover XML format for CI integration
+
+- **CI Integration**: Coverage reports are automatically uploaded to Codecov on every CI run, allowing for historical tracking and visualization of coverage trends.
+
+- **Coverage Badges**: Coverage badges are automatically generated and updated in the README to provide visibility into the current test coverage.
+
+### Adding Tests
+
+When adding new features, follow these guidelines for test coverage:
+
+1. **Unit Tests**: Each service and controller should have corresponding unit tests.
+2. **E2E Tests**: Critical API endpoints should have E2E tests.
+3. **Coverage Goals**: 
+   - Services: 90% statement coverage, 70% branch coverage
+   - Controllers: 90% statement coverage
+   - Infrastructure code: At least 60% coverage
+
 ## Development
 
 - `npm run start:dev` - Start development server with hot-reload
@@ -194,243 +96,9 @@ http://localhost:3000/api
 - `npm run start:prod` - Start production server
 - `npm run test` - Run tests
 - `npm run test:e2e` - Run end-to-end tests
+- `npm run test:cov` - Run tests with coverage
+- `npm run lint` - Lint code
 
-## Database Migrations
-
-To create a new migration:
-```bash
-npx prisma migrate dev --name <migration-name>
-```
-
-To apply migrations:
-```bash
-npx prisma migrate deploy
-```
-
-## Environment Variables
-
-Required environment variables:
-- `AZURE_SQL_CONNECTION_STRING` - Azure SQL connection string
-- `JWT_SECRET` - JWT secret key
-- `JWT_EXPIRATION` - JWT token expiration time
-- `AZURE_STORAGE_CONNECTION_STRING` - Azure Storage connection string
-- `AZURE_STORAGE_CONTAINER` - Azure Storage container name
-- `SENDGRID_API_KEY` - SendGrid API key
-- `REDIS_URL` - Redis connection string
-- `FRONTEND_URL` - Frontend application URL (for CORS)
-
-## Project Progress
-
-### Completed Features ✅
-
-#### Authentication Module
-- [x] JWT Strategy implementation
-- [x] JWT Auth Guard
-- [x] Login endpoint
-- [x] Token refresh endpoint
-- [x] Role-based authentication
-
-#### Users Module
-- [x] User entity with role-based access
-- [x] Sales Representative entity
-- [x] User CRUD operations
-- [x] Sales Rep management
-- [x] Password hashing and validation
-- [x] DTOs for user operations
-- [x] Swagger documentation
-
-#### Products Module
-- [x] Product entity with manufacturer relationship
-- [x] Product CRUD operations
-- [x] Price history tracking
-- [x] Manufacturer-specific product queries
-- [x] DTOs for product operations
-- [x] Swagger documentation
-- [x] Comprehensive test coverage
-- [x] Role-based access control
-
-#### Customers Module
-- [x] Customer entity with contact relationships
-- [x] Customer CRUD operations
-- [x] Contact management
-- [x] DTOs for customer operations
-- [x] Swagger documentation
-- [x] Test coverage
-- [x] Role-based access control
-
-#### Forms Module
-- [x] Form template entity and DTOs
-- [x] Form submission handling
-- [x] DocuSeal API integration
-- [x] PDF processing capabilities
-- [x] Role-based access control
-- [x] Swagger documentation
-- [x] Error handling and logging
-- [x] Form status management
-- [x] PDF generation and download
-
-#### Orders Module
-- [x] Order entity with customer and sales rep relationships
-- [x] Order item entity with product relationships
-- [x] Order CRUD operations
-- [x] Order status management with timestamps
-- [x] Unique order number generation
-- [x] Role-based access control
-- [x] Swagger documentation
-- [x] Error handling and logging
-- [x] Transaction support for data consistency
-- [x] Validation and business rules
-- [x] Comprehensive unit tests
-- [x] Controller tests
-- [x] E2E tests with authentication
-- [x] Test coverage for all endpoints
-- [x] Mock data and fixtures
-- [x] Error scenario testing
-
-### In Progress 🚧
-
-#### Database Setup
-- [x] Initial database schema
-- [x] Database migrations
-- [x] Seed data for development
-- [x] Database backup strategy
-- [x] Database indexes for optimization
-- [x] Azure SQL migration
-- [x] Data type conversions
-- [x] Performance optimizations
-
-#### Additional Modules
-- [x] Orders Module
-  - [x] Order management
-  - [x] Order status tracking
-  - [ ] Invoice generation
-  - [ ] Payment integration
-
-#### Common Module
-- [x] Error handling
-- [x] Logging
-- [x] Validation pipes
-- [x] Response interceptors
-- [x] Rate limiting
-- [x] Caching strategy
-
-### Pending ⏳
-
-#### Testing
-- [x] Unit tests for Products module
-- [x] Integration tests for Products module
-- [x] Unit tests for Customers module
-- [x] Integration tests for Customers module
-- [x] Unit tests for Forms module
-- [x] Integration tests for Forms module
-- [x] E2E tests for Forms module
-- [x] Unit tests for Orders module
-- [x] Controller tests for Orders module
-- [x] E2E tests for Orders module
-- [x] Test infrastructure improvements
-  - [x] Jest configuration for TypeScript
-  - [x] Standardized test helpers and utilities
-  - [x] Common mock services with proper type definitions
-  - [x] Consistent data modeling for test fixtures
-  - [x] Proper handling of JSON data in tests
-  - [x] Enum definitions for test data
-- [ ] Performance testing
-- [ ] Security testing
-
-#### Documentation
-- [x] API documentation for Products module
-- [x] API documentation for Customers module
-- [x] API documentation for Forms module
-- [x] Development guidelines
-- [x] Deployment guide
-- [ ] API versioning strategy
-- [ ] Database schema documentation
-
-#### Infrastructure
-- [x] CI/CD pipeline setup
-- [x] Docker containerization
-- [x] Azure Container Apps deployment
-- [x] Monitoring setup (Azure Monitor + Application Insights)
-- [x] Log aggregation (Azure Log Analytics)
-- [x] Backup and recovery procedures
-
-## Next Steps
-
-1. Orders Module Development
-   - ~~Design order and order item entities~~
-   - ~~Implement order management endpoints~~
-   - ~~Add order status tracking~~
-   - [ ] Invoice generation
-   - [ ] Payment integration
-
-2. Database Improvements
-   - ~~Create comprehensive seed data~~
-   - ~~Implement database backup strategy~~
-   - ~~Add database indexes for optimization~~
-   - ~~Set up database monitoring~~
-   - [ ] Implement database partitioning
-   - [ ] Add database performance monitoring
-
-3. Testing Infrastructure
-   - ~~Set up E2E testing environment~~
-   - ~~Configure Jest for TypeScript testing~~
-   - ~~Create standardized test helpers and utilities~~
-   - ~~Fix unit and integration test issues~~
-   - Implement performance testing
-   - Add security testing suite
-   - Configure test coverage reporting
-
-4. Documentation
-   - ~~Create detailed development guidelines~~
-   - ~~Document deployment procedures~~
-   - [ ] Add API versioning documentation
-   - [ ] Create database schema documentation
-
-5. Infrastructure Setup
-   - ~~Configure CI/CD pipeline~~
-   - ~~Set up Docker containers~~
-   - ~~Deploy to Azure Container Apps~~
-   - ~~Configure Azure monitoring~~
-   - ~~Set up Azure logging~~
-   - [ ] Implement blue-green deployment
-   - [ ] Add automated scaling rules
-
-6. Security Enhancements
-   - ~~Implement rate limiting~~
-   - ~~Add request validation~~
-   - ~~Set up security headers~~
-   - ~~Configure CORS policies~~
-   - [ ] Add API key authentication
-   - [ ] Implement IP whitelisting
-
-7. Performance Optimization
-   - ~~Implement caching strategy~~
-   - ~~Optimize database queries~~
-   - ~~Add response compression~~
-   - ~~Configure CDN integration~~
-   - [ ] Implement query result caching
-   - [ ] Add database query optimization
-
-## CI/CD Configuration
-
-The project uses GitHub Actions for continuous integration and deployment. The CI/CD pipeline includes:
-
-### Continuous Integration
-- Automated testing (unit, integration, and e2e)
-- Code linting
-- Build verification
-- Database migration testing
-
-### Continuous Deployment
-- Automated deployment to staging (main branch)
-- Automated deployment to production (release branches)
-- Docker containerization
-- Azure Container Apps deployment
-- Slack notifications for deployment status
-
-### Required Secrets
-The following secrets need to be configured in GitHub:
-- `AZURE_CREDENTIALS` - Azure service principal credentials (JSON)
 - `ACR_LOGIN_SERVER` - Azure Container Registry login server
 - `ACR_USERNAME` - Azure Container Registry username
 - `ACR_PASSWORD` - Azure Container Registry password
