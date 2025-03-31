@@ -1,0 +1,28 @@
+/* Global styles */
+html,
+:host {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Ensure proper content type headers */
+@charset "utf-8"; 
+
+/* Debug styles */
+.debug-outline {
+  outline: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+/* Force sidebar visibility in development */
+.group\/sidebar-wrapper {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+[data-sidebar="sidebar"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+} 

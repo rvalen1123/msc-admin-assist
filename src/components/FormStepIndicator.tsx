@@ -40,6 +40,7 @@ const FormStepIndicator: React.FC<FormStepIndicatorProps> = ({
                 )}
                 onClick={() => allowNavigation && onStepClick && onStepClick(index + 1)}
                 disabled={!allowNavigation}
+                aria-label={`Step ${index + 1}: ${step.title}${isCompleted ? ' (Completed)' : ''}${isActive ? ' (Current)' : ''}`}
               >
                 {isCompleted ? <Check size={16} /> : index + 1}
               </button>

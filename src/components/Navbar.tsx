@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -94,7 +93,7 @@ const Navbar: React.FC = () => {
             </Popover>
           </div>
 
-          <Button variant="ghost" size="icon" className="text-gray-500">
+          <Button variant="ghost" size="icon" className="text-gray-500" aria-label="Get Help">
             <HelpCircle size={20} />
           </Button>
 

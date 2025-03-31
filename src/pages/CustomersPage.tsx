@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { useForm } from '@/context/FormContext';
+import { useForm } from '@/context/form/FormProvider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -219,15 +218,32 @@ const CustomerRow: React.FC<{ customer: CustomerData }> = ({ customer }) => {
 };
 
 const CustomersPage: React.FC = () => {
-  const { customers, getCustomers } = useForm();
+  const { customers, isLoading, error } = useForm();
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   
-  const filteredCustomers = customers.filter(customer => 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-4rem)]">
+        <h2 className="text-xl font-semibold text-destructive mb-2">Error Loading Customers</h2>
+        <p className="text-muted-foreground">{error.message}</p>
+      </div>
+    );
+  }
+  
+  const filteredCustomers = customers?.filter(customer => 
     customer.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (customer.company && customer.company.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (customer.email && customer.email.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  ) || [];
 
   return (
     <div className="space-y-6">
@@ -262,7 +278,7 @@ const CustomersPage: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {customers.length > 0 ? (
+          {customers?.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow>

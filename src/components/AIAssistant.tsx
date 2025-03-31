@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -158,6 +157,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onSuggestion }) => {
             variant="outline"
             size="icon"
             className="h-10 w-10 rounded-full bg-primary text-white hover:bg-primary/90 fixed bottom-6 right-6 shadow-lg"
+            aria-label="Open AI Form Assistant"
           >
             <Bot size={20} />
           </Button>

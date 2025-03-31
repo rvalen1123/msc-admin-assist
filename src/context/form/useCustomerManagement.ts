@@ -1,9 +1,40 @@
-
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { CustomerData } from '../../types';
+// Comment out the API import temporarily
+// import { customerService } from '../../lib/services/customerService';
+
+// Mock data for testing
+const MOCK_CUSTOMERS: CustomerData[] = [
+  {
+    id: 'customer-1',
+    name: 'John Doe',
+    email: 'john@example.com',
+    phone: '555-123-4567',
+    company: 'Acme Inc.'
+  },
+  {
+    id: 'customer-2',
+    name: 'Jane Smith',
+    email: 'jane@example.com',
+    phone: '555-987-6543',
+    company: 'TechCorp'
+  }
+];
 
 export const useCustomerManagement = () => {
   const [customers, setCustomers] = useState<CustomerData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  
+  useEffect(() => {
+    // Simulate API call with mock data
+    const timer = setTimeout(() => {
+      setCustomers(MOCK_CUSTOMERS);
+      setIsLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   const addCustomer = (customer: CustomerData): string => {
     // Generate ID if not provided
@@ -53,6 +84,8 @@ export const useCustomerManagement = () => {
 
   return {
     customers,
+    isLoading,
+    error,
     addCustomer,
     updateCustomer,
     getCustomers,

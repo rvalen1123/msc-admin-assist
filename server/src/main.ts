@@ -7,24 +7,13 @@ import * as compression from 'compression';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
 import { Reflector } from '@nestjs/core';
+import { securityConfig } from './config/security';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable security headers
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:5173'],
-      },
-    },
-    crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-  }));
+  // Apply security configurations
+  app.use(securityConfig);
 
   // Enable compression
   app.use(compression({
@@ -88,11 +77,20 @@ async function bootstrap() {
     res.status(200).send({ status: 'ok' });
   });
 
+  // Set proper content type headers
+  app.use((req, res, next) => {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  });
+
   // Start the server
   const port = process.env.PORT || 3000;
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
-  console.log(`Swagger documentation is available at: http://localhost:${port}/api`);
+  console.log(`API documentation available at: http://localhost:${port}/api`);
 }
 
-bootstrap(); 
+bootstrap();

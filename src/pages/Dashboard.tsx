@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -135,7 +134,9 @@ const Dashboard: React.FC = () => {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link to="/onboarding">Start Onboarding <ChevronRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/onboarding" aria-label="Start Customer Onboarding Process">
+                Start Onboarding <ChevronRight className="h-4 w-4 ml-1" />
+              </Link>
             </Button>
           </CardFooter>
         </Card>
@@ -156,7 +157,9 @@ const Dashboard: React.FC = () => {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link to="/insurance">Verify Insurance <ChevronRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/insurance" aria-label="Start Insurance Verification Process">
+                Verify Insurance <ChevronRight className="h-4 w-4 ml-1" />
+              </Link>
             </Button>
           </CardFooter>
         </Card>
@@ -177,7 +180,9 @@ const Dashboard: React.FC = () => {
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link to="/orders">Place Order <ChevronRight className="h-4 w-4 ml-1" /></Link>
+              <Link to="/orders" aria-label="Start Order Products Process">
+                Place Order <ChevronRight className="h-4 w-4 ml-1" />
+              </Link>
             </Button>
           </CardFooter>
         </Card>

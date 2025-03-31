@@ -4,6 +4,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheInterceptor } from './common/interceptors/cache.interceptor';
+import { CacheService } from './common/services/cache.service';
+import { CacheController } from './common/controllers/cache.controller';
 
 // Import modules
 import { AuthModule } from './modules/auth/auth.module';
@@ -55,11 +57,13 @@ if (process.env.NODE_ENV !== 'production') {
     // Environment-specific modules
     ...environmentBasedModules,
   ],
+  controllers: [CacheController],
   providers: [
     {
       provide: 'CACHE_INTERCEPTOR',
       useClass: CacheInterceptor,
     },
+    CacheService,
   ],
 })
 export class AppModule {} 

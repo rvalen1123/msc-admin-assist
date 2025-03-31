@@ -1,204 +1,212 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlserver"
-  url      = env("AZURE_SQL_CONNECTION_STRING")
-  shadowDatabaseUrl = env("AZURE_SQL_SHADOW_CONNECTION_STRING")
+  provider          = "sqlserver"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
-  id            String      @id @default(uuid())
-  email         String      @unique
-  passwordHash  String
-  role          String      // ADMIN, CUSTOMER, SALES
-  firstName     String?
-  lastName      String?
-  company       String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  salesRep      SalesRep?
+  id              String           @id(map: "PK_User") @default(uuid()) @db.NVarChar(450)
+  email           String           @unique(map: "IX_User_email") @db.NVarChar(450)
+  passwordHash    String           @db.NVarChar(Max)
+  role            String           @db.NVarChar(20)
+  firstName       String?          @db.NVarChar(Max)
+  lastName        String?          @db.NVarChar(Max)
+  company         String?          @db.NVarChar(Max)
+  createdAt       DateTime         @default(now(), map: "DF__User__createdAt__6521F869")
+  updatedAt       DateTime         @updatedAt
   formSubmissions FormSubmission[]
-  salesRepOrders Order[]    @relation("SalesRepOrders")
+  salesRepOrders  Order[]          @relation("SalesRepOrders")
+  salesRep        SalesRep[]
+  refreshTokens   RefreshToken[]
 
-  @@index([role])
-  @@index([email])
+  @@index([role], map: "IX_User_role")
 }
 
 model Customer {
-  id            String      @id @default(uuid())
-  name          String
-  email         String      @unique
-  phone         String?
-  company       String?
-  addressLine1  String?
-  addressLine2  String?
-  city          String?
-  state         String?
-  zipCode       String?
-  country       String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  contacts      CustomerContact[]
+  id              String            @id(map: "PK_Customer") @default(uuid()) @db.NVarChar(450)
+  name            String            @db.NVarChar(450)
+  email           String            @unique(map: "IX_Customer_email") @db.NVarChar(450)
+  phone           String?           @db.NVarChar(Max)
+  company         String?           @db.NVarChar(450)
+  addressLine1    String?           @db.NVarChar(Max)
+  addressLine2    String?           @db.NVarChar(Max)
+  city            String?           @db.NVarChar(Max)
+  state           String?           @db.NVarChar(Max)
+  zipCode         String?           @db.NVarChar(Max)
+  country         String?           @db.NVarChar(Max)
+  createdAt       DateTime          @default(now(), map: "DF__Customer__create__67FE6514")
+  updatedAt       DateTime          @updatedAt
+  contacts        CustomerContact[]
   formSubmissions FormSubmission[]
-  orders        Order[]
+  orders          Order[]
 
-  @@index([name])
-  @@index([email])
-  @@index([company])
+  @@index([company], map: "IX_Customer_company")
+  @@index([name], map: "IX_Customer_name")
 }
 
 model CustomerContact {
-  id            String      @id @default(uuid())
-  customerId    String
-  name          String
-  title         String?
-  email         String?
-  phone         String?
-  isPrimary     Boolean     @default(false)
-  createdAt     DateTime    @default(now())
-  customer      Customer    @relation(fields: [customerId], references: [id])
+  id         String   @id(map: "PK_CustomerContact") @default(uuid()) @db.NVarChar(450)
+  customerId String   @db.NVarChar(450)
+  name       String   @db.NVarChar(Max)
+  title      String?  @db.NVarChar(Max)
+  email      String?  @db.NVarChar(450)
+  phone      String?  @db.NVarChar(Max)
+  isPrimary  Boolean  @default(false, map: "DF__CustomerC__isPri__6ADAD1BF")
+  createdAt  DateTime @default(now(), map: "DF__CustomerC__creat__6BCEF5F8")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_CustomerContact_Customer_customerId")
 
-  @@index([customerId])
-  @@index([email])
-  @@index([isPrimary])
+  @@index([customerId], map: "IX_CustomerContact_customerId")
+  @@index([email], map: "IX_CustomerContact_email")
+  @@index([isPrimary], map: "IX_CustomerContact_isPrimary")
 }
 
 model Product {
-  id            String      @id @default(uuid())
-  name          String
-  manufacturerId String
-  description   String?
-  price         Float?
-  qCode         String?
-  nationalAsp   Float?
-  mue           String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  manufacturer  Manufacturer @relation(fields: [manufacturerId], references: [id])
-  orderItems    OrderItem[]
-  priceHistory  PriceHistory[]
+  id             String         @id(map: "PK_Product") @default(uuid()) @db.NVarChar(450)
+  name           String         @db.NVarChar(450)
+  manufacturerId String         @db.NVarChar(450)
+  description    String?        @db.NVarChar(Max)
+  price          Float?
+  qCode          String?        @db.NVarChar(450)
+  nationalAsp    Float?
+  mue            String?        @db.NVarChar(Max)
+  createdAt      DateTime       @default(now(), map: "DF__Product__created__6EAB62A3")
+  updatedAt      DateTime       @updatedAt
+  orderItems     OrderItem[]
+  priceHistory   PriceHistory[]
+  manufacturer   Manufacturer   @relation(fields: [manufacturerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Product_Manufacturer_manufacturerId")
 
-  @@index([manufacturerId])
-  @@index([name])
-  @@index([qCode])
+  @@index([manufacturerId], map: "IX_Product_manufacturerId")
+  @@index([name], map: "IX_Product_name")
+  @@index([qCode], map: "IX_Product_qCode")
 }
 
 model Manufacturer {
-  id            String      @id @default(uuid())
-  name          String
-  logoUrl       String?
-  createdAt     DateTime    @default(now())
-  products      Product[]
+  id        String    @id(map: "PK_Manufacturer") @default(uuid()) @db.NVarChar(450)
+  name      String    @db.NVarChar(450)
+  logoUrl   String?   @db.NVarChar(Max)
+  createdAt DateTime  @default(now(), map: "DF__Manufactu__creat__7187CF4E")
+  products  Product[]
 
-  @@index([name])
+  @@index([name], map: "IX_Manufacturer_name")
 }
 
 model SalesRep {
-  id            String      @id @default(uuid())
-  userId        String      @unique
-  territory     String?
-  region        String?
-  active        Boolean     @default(true)
-  createdAt     DateTime    @default(now())
-  user          User        @relation(fields: [userId], references: [id])
+  id        String   @id(map: "PK_SalesRep") @default(uuid()) @db.NVarChar(450)
+  userId    String   @db.NVarChar(450)
+  territory String?  @db.NVarChar(450)
+  region    String?  @db.NVarChar(450)
+  active    Boolean  @default(true, map: "DF__SalesRep__active__74643BF9")
+  createdAt DateTime @default(now(), map: "DF__SalesRep__create__75586032")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_SalesRep_User_userId")
 
-  @@index([territory])
-  @@index([region])
-  @@index([active])
+  @@index([active], map: "IX_SalesRep_active")
+  @@index([region], map: "IX_SalesRep_region")
+  @@index([territory], map: "IX_SalesRep_territory")
+  @@index([userId], map: "IX_SalesRep_userId")
 }
 
 model FormTemplate {
-  id            String      @id @default(uuid())
-  type          String
-  title         String
-  description   String?
-  schema        String
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  submissions   FormSubmission[]
+  id          String           @id(map: "PK_FormTemplate") @default(uuid()) @db.NVarChar(450)
+  type        String           @db.NVarChar(450)
+  title       String           @db.NVarChar(Max)
+  description String?          @db.NVarChar(Max)
+  schema      String           @db.NVarChar(Max)
+  createdAt   DateTime         @default(now(), map: "DF__FormTempl__creat__7834CCDD")
+  updatedAt   DateTime         @updatedAt
+  submissions FormSubmission[]
 
-  @@index([type])
+  @@index([type], map: "IX_FormTemplate_type")
 }
 
 model FormSubmission {
-  id            String      @id @default(uuid())
-  templateId    String
-  userId        String
-  customerId    String
-  data          String
-  status        String      @default("DRAFT") // DRAFT, SUBMITTED, PROCESSING, COMPLETED, REJECTED
-  submittedAt   DateTime?
-  completedAt   DateTime?
-  pdfUrl        String?
-  createdAt     DateTime    @default(now())
-  template      FormTemplate @relation(fields: [templateId], references: [id])
-  user          User        @relation(fields: [userId], references: [id])
-  customer      Customer    @relation(fields: [customerId], references: [id])
+  id          String       @id(map: "PK_FormSubmission") @default(uuid()) @db.NVarChar(450)
+  templateId  String       @db.NVarChar(450)
+  userId      String       @db.NVarChar(450)
+  customerId  String       @db.NVarChar(450)
+  data        String       @db.NVarChar(Max)
+  status      String       @default("DRAFT", map: "DF__FormSubmi__statu__7B113988") @db.NVarChar(20)
+  submittedAt DateTime?
+  completedAt DateTime?
+  pdfUrl      String?      @db.NVarChar(Max)
+  createdAt   DateTime     @default(now(), map: "DF__FormSubmi__creat__7C055DC1")
+  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_FormSubmission_Customer_customerId")
+  template    FormTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_FormSubmission_FormTemplate_templateId")
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_FormSubmission_User_userId")
 
-  @@index([templateId])
-  @@index([userId])
-  @@index([customerId])
-  @@index([status])
-  @@index([submittedAt])
-  @@index([completedAt])
+  @@index([completedAt], map: "IX_FormSubmission_completedAt")
+  @@index([customerId], map: "IX_FormSubmission_customerId")
+  @@index([status], map: "IX_FormSubmission_status")
+  @@index([submittedAt], map: "IX_FormSubmission_submittedAt")
+  @@index([templateId], map: "IX_FormSubmission_templateId")
+  @@index([userId], map: "IX_FormSubmission_userId")
 }
 
 model Order {
-  id            String      @id @default(uuid())
-  orderNumber   String      @unique
-  customerId    String
-  customer      Customer    @relation(fields: [customerId], references: [id])
-  salesRepId    String
-  salesRep      User        @relation("SalesRepOrders", fields: [salesRepId], references: [id])
-  status        String      @default("DRAFT") // DRAFT, PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED, REFUNDED
-  items         OrderItem[]
-  totalAmount   Float
-  shippingAddress String
-  billingAddress  String
-  notes         String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  shippedAt     DateTime?
-  deliveredAt   DateTime?
-  cancelledAt   DateTime?
-  refundedAt    DateTime?
+  id              String      @id(map: "PK_Order") @default(uuid()) @db.NVarChar(450)
+  orderNumber     String      @unique(map: "IX_Order_orderNumber") @db.NVarChar(450)
+  customerId      String      @db.NVarChar(450)
+  salesRepId      String      @db.NVarChar(450)
+  status          String      @default("DRAFT", map: "DF__Order__status__7EE1CA6C") @db.NVarChar(20)
+  totalAmount     Float
+  shippingAddress String      @db.NVarChar(Max)
+  billingAddress  String      @db.NVarChar(Max)
+  notes           String?     @db.NVarChar(Max)
+  createdAt       DateTime    @default(now(), map: "DF__Order__createdAt__7FD5EEA5")
+  updatedAt       DateTime    @updatedAt
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+  refundedAt      DateTime?
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Order_Customer_customerId")
+  salesRep        User        @relation("SalesRepOrders", fields: [salesRepId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_Order_User_salesRepId")
+  items           OrderItem[]
 
-  @@index([customerId])
-  @@index([salesRepId])
-  @@index([status])
+  @@index([customerId], map: "IX_Order_customerId")
+  @@index([salesRepId], map: "IX_Order_salesRepId")
+  @@index([status], map: "IX_Order_status")
 }
 
 model OrderItem {
-  id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId   String
-  product     Product  @relation(fields: [productId], references: [id])
-  quantity    Int
-  unitPrice   Float
-  totalPrice  Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id(map: "PK_OrderItem") @default(uuid()) @db.NVarChar(450)
+  orderId    String   @db.NVarChar(450)
+  productId  String   @db.NVarChar(450)
+  quantity   Int
+  unitPrice  Float
+  totalPrice Float
+  createdAt  DateTime @default(now(), map: "DF__OrderItem__creat__02B25B50")
+  updatedAt  DateTime @updatedAt
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_OrderItem_Order_orderId")
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_OrderItem_Product_productId")
 
-  @@index([orderId])
-  @@index([productId])
+  @@index([orderId], map: "IX_OrderItem_orderId")
+  @@index([productId], map: "IX_OrderItem_productId")
 }
 
 model PriceHistory {
-  id            String      @id @default(uuid())
-  productId     String
-  quarter       String
-  price         Float?
-  nationalAsp   Float?
-  updatedAt     DateTime    @updatedAt
-  product       Product     @relation(fields: [productId], references: [id])
+  id          String   @id(map: "PK_PriceHistory") @default(uuid()) @db.NVarChar(450)
+  productId   String   @db.NVarChar(450)
+  quarter     String   @db.NVarChar(450)
+  price       Float?
+  nationalAsp Float?
+  updatedAt   DateTime @updatedAt
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_PriceHistory_Product_productId")
 
-  @@index([productId])
-  @@index([quarter])
-  @@index([updatedAt])
-} 
+  @@index([productId], map: "IX_PriceHistory_productId")
+  @@index([quarter], map: "IX_PriceHistory_quarter")
+  @@index([updatedAt], map: "IX_PriceHistory_updatedAt")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.NVarChar(450)
+  token     String   @unique @db.NVarChar(450)
+  userId    String   @db.NVarChar(450)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId], map: "IX_RefreshToken_userId")
+}

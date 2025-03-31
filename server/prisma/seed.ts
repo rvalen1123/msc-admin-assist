@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -15,26 +15,45 @@ async function main() {
   await prisma.customerContact.deleteMany();
   await prisma.customer.deleteMany();
   await prisma.salesRep.deleteMany();
+  await prisma.$executeRaw`DELETE FROM [dbo].[RefreshToken]`;
   await prisma.user.deleteMany();
 
   // Create admin user
-  const adminPasswordHash = await bcrypt.hash('admin123', 10);
-  const admin = await prisma.user.create({
-    data: {
-      email: 'admin@test.com',
-      passwordHash: adminPasswordHash,
+  const adminPassword = await bcrypt.hash('admin123', 10);
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {},
+    create: {
+      email: 'admin@example.com',
+      passwordHash: adminPassword,
       role: 'ADMIN',
       firstName: 'Admin',
       lastName: 'User',
+      company: 'MSC Wound Care',
+    },
+  });
+
+  // Create regular user
+  const userPassword = await bcrypt.hash('user123', 10);
+  const user = await prisma.user.upsert({
+    where: { email: 'user@example.com' },
+    update: {},
+    create: {
+      email: 'user@example.com',
+      passwordHash: userPassword,
+      role: 'USER',
+      firstName: 'Regular',
+      lastName: 'User',
+      company: 'MSC Wound Care',
     },
   });
 
   // Create sales representatives
-  const salesRepPasswordHash = await bcrypt.hash('salesrep123', 10);
+  const salesRepPassword = await bcrypt.hash('salesrep123', 10);
   const salesRep1 = await prisma.user.create({
     data: {
       email: 'salesrep1@test.com',
-      passwordHash: salesRepPasswordHash,
+      passwordHash: salesRepPassword,
       role: 'SALES',
       firstName: 'John',
       lastName: 'Doe',
@@ -45,7 +64,7 @@ async function main() {
   const salesRep2 = await prisma.user.create({
     data: {
       email: 'salesrep2@test.com',
-      passwordHash: salesRepPasswordHash,
+      passwordHash: salesRepPassword,
       role: 'SALES',
       firstName: 'Jane',
       lastName: 'Smith',
@@ -206,6 +225,9 @@ async function main() {
   });
 
   console.log('Database has been seeded!');
+  console.log('Admin user:', admin.email);
+  console.log('Regular user:', user.email);
+  console.log('Sales reps:', salesRep1.email, salesRep2.email);
 }
 
 main()

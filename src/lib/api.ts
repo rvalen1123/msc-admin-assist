@@ -16,6 +16,24 @@ const api = axios.create({
   timeout: 10000, // 10 second timeout
 });
 
+// Flag to prevent multiple refresh token requests
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (error: any) => void;
+}> = [];
+
+const processQueue = (error: any = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(localStorage.getItem('auth_token') || '');
+    }
+  });
+  failedQueue = [];
+};
+
 // Request interceptor to add authentication token
 api.interceptors.request.use(
   (config: AxiosRequestConfig): AxiosRequestConfig => {
@@ -33,11 +51,67 @@ api.interceptors.request.use(
 // Response interceptor to handle common errors
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    const originalRequest = error.config;
+    
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
+
     // Handle 401 Unauthorized errors (token expired)
     if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        // Attempt to refresh the token
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        const response = await api.post<{ tokens: { accessToken: string; refreshToken: string; expiresIn: number } }>(
+          '/auth/refresh',
+          { refreshToken }
+        );
+
+        const { accessToken, refreshToken: newRefreshToken, expiresIn } = response.data.tokens;
+        
+        localStorage.setItem('auth_token', accessToken);
+        localStorage.setItem('refresh_token', newRefreshToken);
+        localStorage.setItem('token_expiry', (Date.now() + expiresIn * 1000).toString());
+
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        }
+
+        processQueue(accessToken);
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError);
+        // Clear auth data and redirect to login
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('token_expiry');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
     
     // Handle 403 Forbidden errors (insufficient permissions)
