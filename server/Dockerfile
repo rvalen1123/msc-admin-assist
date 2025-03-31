@@ -1,5 +1,5 @@
 # Stage 1: Build the application
-FROM node:22-alpine AS build
+FROM node:current-slim AS build
 
 # Set working directory
 WORKDIR /app
@@ -22,7 +22,7 @@ RUN npm run build
 RUN npx prisma generate
 
 # Stage 2: Create production image
-FROM node:22-alpine AS production
+FROM node:current-slim AS production
 
 # Set environment variables
 ENV NODE_ENV=production

@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
 
 # Stage 1: Build the application
-FROM node:22.13.1-slim AS builder
+FROM node:current-slim AS builder
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /
 
 # Copy package.json and package-lock.json for dependency installation
 COPY package*.json ./
@@ -22,7 +22,7 @@ RUN npm run build
 FROM node:22.13.1-slim AS production
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /
 
 # Copy only the necessary files from the builder stage
 COPY --from=builder /app/dist ./dist
