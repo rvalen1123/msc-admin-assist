@@ -1,47 +1,48 @@
-# Build stage
-FROM node:18-alpine AS builder
+# Stage 1: Build the application
+FROM node:22-alpine AS build
 
+# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY tsconfig*.json ./
 COPY prisma ./prisma/
 
-# Install dependencies
+# Install dependencies including Prisma
 RUN npm ci
 
-# Copy source code
+# Copy application code
 COPY . .
-
-# Generate Prisma client
-RUN npx prisma generate
 
 # Build application
 RUN npm run build
 
-# Production stage
-FROM node:18-alpine
+# Generate Prisma client
+RUN npx prisma generate
 
+# Stage 2: Create production image
+FROM node:22-alpine AS production
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=3000
+
+# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
-COPY prisma ./prisma/
+COPY --from=build /server/dist ./dist
+COPY --from=build /server/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build /server/node_modules/@prisma ./node_modules/@prisma
+COPY --from=build /server/prisma ./prisma
 
-# Install production dependencies only
-RUN npm ci --only=production
-
-# Copy built application from builder stage
-COPY --from=builder /app/dist ./dist
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Set environment variables
-ENV NODE_ENV=production
+# Install production dependencies
+RUN npm ci --production
 
 # Expose port
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "run", "start:prod"] 
+# Run the application
+CMD ["node", "dist/src/main.js"]

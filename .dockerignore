@@ -1,0 +1,50 @@
+# Node.js specific
+node_modules/
+npm-debug.log
+yarn-debug.log
+
+# Build outputs
+dist/
+build/
+out/
+
+# Test files
+test/
+tests/
+
+# Version control
+.git/
+.gitignore
+
+# Environment and secrets
+.env*
+*.env
+
+# Documentation
+docs/
+*.md
+README*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Local development
+.local/
+local/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker files
+Dockerfile*
+docker-compose*
+
+# Project-specific patterns
+coverage/
+playwright-report/
+public/lovable-uploads/

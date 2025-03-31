@@ -1,0 +1,49 @@
+# Node.js dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Test files
+test/
+tests/
+
+# Environment and secrets
+.env*
+*.pem
+*.key
+*.crt
+
+# Documentation
+docs/
+*.md
+README*
+
+# Docker files
+Dockerfile*
+docker-compose*
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Version control
+.git/
+.gitignore
+
+# Debug files
+debug/
+*.log
+
+# Project-specific patterns
+.local/
+local/

@@ -11,10 +11,14 @@
     "build:dev": "vite build --mode development",
     "build:backend": "cd server && npm run build",
     "build:all": "npm run build && npm run build:backend",
+    "build:production": "node scripts/build-production.js",
     "lint": "eslint .",
     "lint:backend": "cd server && npm run lint",
     "lint:all": "npm run lint && npm run lint:backend",
     "preview": "vite preview",
+    "start:production": "cd server/dist && node main.js",
+    "start:production:install": "cd server/dist && npm ci --production && npm start",
+    "deploy:azure": "npm run build:production && node scripts/azure-deploy.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -108,7 +112,7 @@
     "tailwindcss": "^3.4.11",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.0.1",
-    "vite": "^5.4.1",
+    "vite": "^6.2.3",
     "vitest": "^3.0.9"
   }
 }

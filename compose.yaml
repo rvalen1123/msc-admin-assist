@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    init: true
+    # env_file: ./.env  # Uncomment if .env file exists
+    depends_on:
+      - database
+  database:
+    image: .
+    environment:
+      - AZURE_SQL_SERVER=med-exchange-2.database.windows.net
+      - AZURE_SQL_DATABASE=msc
+      - AZURE_SQL_USER=mscwoundadmin
+      - AZURE_SQL_PASSWORD=B@xter1123$$!
+    ports:
+      - "8080:8080"
+    networks:
+      - app_network
+volumes:
+  db_data:
+networks:
+  app_network:

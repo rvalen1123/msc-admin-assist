@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  # Frontend Development Service
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src
+      - /src/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:3000/api
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  # Backend Development Service
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - JWT_SECRET=585fe7c35aa43fc70c3d583cc064c0aad1635026bed455450ff7bc8d68b0dadce906f840cb3d2ddcc30977fe4971785cadf4aeb6384f351b39fda5d16c0e3b52
+      - JWT_EXPIRES_IN=1d
+      - JWT_REFRESH_EXPIRES_IN=7d
+      - RATE_LIMIT_TTL=60
+      - RATE_LIMIT_MAX=100
+      - FRONTEND_URL=http://localhost:5173
+      - API_PREFIX=/api
+      - AZURE_SQL_CONNECTION_STRING=sqlserver://med-exchange-2.database.windows.net:1433;database=msc;user=mscwoundadmin;password=B@xter1123$$!;encrypt=true;trustServerCertificate=false;loginTimeout=30;
+      - AZURE_SQL_SHADOW_CONNECTION_STRING=sqlserver://med-exchange-2.database.windows.net:1433;database=msc_shadow;user=mscwoundadmin;password=B@xter1123$$!;encrypt=true;trustServerCertificate=false;loginTimeout=30;
+    depends_on:
+      - mssql
+    networks:
+      - app-network
+
+  # SQL Server for Development
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=B@xter1123$$!
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - app-network
+
+  # Optional: Redis for caching
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+
+  # Optional: Mailhog for email testing
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    networks:
+      - app-network
+
+  # Optional: Azurite for local Azure Storage emulation
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    ports:
+      - "10000:10000" # Blob storage
+      - "10001:10001" # Queue storage
+      - "10002:10002" # Table storage
+    volumes:
+      - azurite-data:/data
+    networks:
+      - app-network
+
+volumes:
+  mssql-data:
+  azurite-data:
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,65 +1,77 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { ScheduleModule } from '@nestjs/schedule';
-import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ThrottlerModule } from '@nestjs/throttler';
-import { CacheInterceptor } from './common/interceptors/cache.interceptor';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule, ThrottlerModuleOptions } from '@nestjs/throttler';
+import { PrismaModule } from './prisma/prisma.module';
+import { LoggerModule } from 'nestjs-pino';
+import * as path from 'path';
 
-// Import modules
+// Import your feature modules here
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { CustomersModule } from './modules/customers/customers.module';
 import { ProductsModule } from './modules/products/products.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { OrdersModule } from './modules/orders/orders.module';
-import { CommonModule } from './modules/common/common.module';
-import { TestModule } from './modules/test/test.module';
-
-// Dynamically include modules based on environment
-const environmentBasedModules = [];
-
-// Only include TestModule in non-production environments
-if (process.env.NODE_ENV !== 'production') {
-  environmentBasedModules.push(TestModule);
-}
 
 @Module({
   imports: [
     // Configuration
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: [
+        `.env.${process.env.NODE_ENV || 'development'}`,
+        '.env',
+      ],
     }),
-
-    // Rate limiting
-    ThrottlerModule.forRoot([{
-      ttl: 60, // 1 minute
-      limit: 100, // 100 requests per minute
-    }]),
-
-    // Task Scheduling
-    ScheduleModule.forRoot(),
-
-    // Event Emitter
-    EventEmitterModule.forRoot(),
-
-    // Feature Modules
-    AuthModule,
-    UsersModule,
-    CustomersModule,
-    ProductsModule,
-    FormsModule,
-    OrdersModule,
-    CommonModule,
     
-    // Environment-specific modules
-    ...environmentBasedModules,
+    // Database
+    PrismaModule,
+    
+    // Rate limiting
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService): ThrottlerModuleOptions => ({
+        throttlers: [{
+          ttl: config.get('THROTTLE_TTL'),
+          limit: config.get('THROTTLE_LIMIT'),
+        }],
+      })
+    }),
+    // Logging
+    LoggerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const isProd = config.get('NODE_ENV') === 'production';
+        return {
+          pinoHttp: {
+            level: isProd ? 'info' : 'debug',
+            transport: isProd ? undefined : { target: 'pino-pretty' },
+            redact: ['req.headers.authorization'],
+            customProps: () => ({
+              context: 'HTTP',
+            }),
+          },
+        };
+      },
+    }),
+    
+    // Feature modules - uncomment as you implement them
+     AuthModule,
+     UsersModule,
+     CustomersModule,
+     ProductsModule,
+     FormsModule,
+     OrdersModule,
   ],
   providers: [
+    // Global guards
     {
-      provide: 'CACHE_INTERCEPTOR',
-      useClass: CacheInterceptor,
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
-export class AppModule {} 
+export class AppModule {}

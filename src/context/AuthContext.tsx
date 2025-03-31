@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserRole } from '../types';
-import { apiService } from '../lib/api';
+import { api } from '../lib/api';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -33,7 +33,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      const userData = await apiService.get<User>('/auth/profile');
+      const { data: userData } = await api.users.getCurrent();
       setCurrentUser(userData);
       localStorage.setItem(USER_KEY, JSON.stringify(userData));
       setError(null);
@@ -56,10 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
       
-      const response = await apiService.post<{ token: string; user: User }>('/auth/login', {
-        email,
-        password
-      });
+      const { data: response } = await api.auth.login(email, password);
       
       // Store token and user in localStorage
       localStorage.setItem(TOKEN_KEY, response.token);
@@ -103,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       setLoading(true);
-      const updatedUser = await apiService.patch<User>(`/users/${currentUser.id}`, userData);
+      const { data: updatedUser } = await api.users.update(currentUser.id, userData);
       
       setCurrentUser(updatedUser);
       localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
