@@ -12,6 +12,10 @@ const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
   const { login, error } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,10 +24,25 @@ const LoginPage: React.FC = () => {
   const locationState = location.state as LocationState;
   const from = locationState?.from?.pathname || '/dashboard';
 
+  const validateForm = () => {
+    const errors: { email?: string; password?: string } = {};
+    
+    if (!email) {
+      errors.email = 'Email is required';
+    }
+    
+    if (!password) {
+      errors.password = 'Password is required';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    if (!validateForm()) {
       return;
     }
     
@@ -53,7 +72,7 @@ const LoginPage: React.FC = () => {
           </div>
         )}
         
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
           <div className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -64,12 +83,19 @@ const LoginPage: React.FC = () => {
                 name="email"
                 type="email"
                 autoComplete="email"
-                required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setValidationErrors(prev => ({ ...prev, email: undefined }));
+                }}
+                className={`block w-full px-3 py-2 mt-1 border ${
+                  validationErrors.email ? 'border-red-500' : 'border-gray-300'
+                } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                 placeholder="you@example.com"
               />
+              {validationErrors.email && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors.email}</p>
+              )}
             </div>
             
             <div>
@@ -81,11 +107,18 @@ const LoginPage: React.FC = () => {
                 name="password"
                 type="password"
                 autoComplete="current-password"
-                required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setValidationErrors(prev => ({ ...prev, password: undefined }));
+                }}
+                className={`block w-full px-3 py-2 mt-1 border ${
+                  validationErrors.password ? 'border-red-500' : 'border-gray-300'
+                } rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
               />
+              {validationErrors.password && (
+                <p className="mt-1 text-sm text-red-500">{validationErrors.password}</p>
+              )}
             </div>
           </div>
 

@@ -114,7 +114,7 @@ const Navbar: React.FC = () => {
                   <p className="text-sm font-medium leading-none">{currentUser?.name}</p>
                   <p className="text-xs leading-none text-muted-foreground">{currentUser?.email}</p>
                   <p className="text-xs font-medium mt-1 text-primary">
-                    {currentUser?.role === 'admin' ? 'Administrator' : currentUser?.role === 'sales' ? 'Sales Representative' : 'Customer'}
+                    {currentUser?.role === 'admin' ? 'Administrator' : currentUser?.role === 'sales_rep' ? 'Sales Representative' : 'Customer'}
                   </p>
                 </div>
               </DropdownMenuLabel>

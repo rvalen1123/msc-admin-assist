@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
@@ -6,9 +5,38 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { useForm } from "react-hook-form";
 import { toast } from '@/hooks/use-toast';
+import * as z from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const securityFormSchema = z.object({
+  currentPassword: z.string(),
+  newPassword: z.string().min(8, "Password must be at least 8 characters long"),
+  confirmPassword: z.string(),
+  twoFactorAuth: z.boolean(),
+  sessionTimeout: z.boolean()
+}).refine((data) => {
+  if (data.newPassword || data.confirmPassword) {
+    return data.currentPassword !== "";
+  }
+  return true;
+}, {
+  message: "Current password is required to change your password",
+  path: ["currentPassword"]
+}).refine((data) => {
+  if (data.newPassword || data.confirmPassword) {
+    return data.newPassword === data.confirmPassword;
+  }
+  return true;
+}, {
+  message: "New passwords don't match",
+  path: ["confirmPassword"]
+});
+
+type SecurityFormValues = z.infer<typeof securityFormSchema>;
 
 const SecuritySettingsTab = () => {
-  const form = useForm({
+  const form = useForm<SecurityFormValues>({
+    resolver: zodResolver(securityFormSchema),
     defaultValues: {
       currentPassword: "",
       newPassword: "",
@@ -18,44 +46,14 @@ const SecuritySettingsTab = () => {
     }
   });
 
-  const onSubmit = (data: any) => {
-    console.log("Security settings saved:", data);
-    
-    // Validation for password change
-    if ((data.newPassword || data.confirmPassword) && !data.currentPassword) {
-      toast({
-        title: "Error",
-        description: "Current password is required to change your password.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (data.newPassword !== data.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords don't match.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (data.newPassword && data.newPassword.length < 8) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 8 characters long.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const onSubmit = (data: SecurityFormValues) => {
     // Success toast
     toast({
       title: "Settings saved",
       description: "Your security settings have been updated.",
     });
     
-    // Clear password fields
+    // Clear password fields but keep other settings
     form.reset({
       ...data,
       currentPassword: "",

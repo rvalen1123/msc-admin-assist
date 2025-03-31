@@ -21,7 +21,7 @@ const AccountSettingsTab = () => {
     }
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: unknown) => {
     console.log("Account settings saved:", data);
     updateUserProfile(data);
     

@@ -1,7 +1,9 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from '../types';
+import { User, UserRole, AuthTokens, LoginResponse, ApiError } from '../types';
 import { apiService } from '../lib/api';
-
+import { AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosHeaders } from 'axios';
+// Types and Interfaces
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
@@ -12,19 +14,71 @@ interface AuthContextType {
   refreshToken: () => Promise<void>;
 }
 
-interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-  expiresIn: number;
+interface ApiResponse<T> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: AxiosHeaders;
+  config: InternalAxiosRequestConfig;
 }
 
+// Constants
 const TOKEN_KEY = 'auth_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'current_user';
+const TOKEN_EXPIRY_KEY = 'token_expiry';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// Changed to named export for Fast Refresh compatibility
+// Utility functions
+const clearAuthData = () => {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(TOKEN_EXPIRY_KEY);
+};
+
+const storeAuthData = (tokens: AuthTokens, user: User) => {
+  localStorage.setItem(TOKEN_KEY, tokens.accessToken);
+  localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  localStorage.setItem(TOKEN_EXPIRY_KEY, (Date.now() + tokens.expiresIn * 1000).toString());
+};
+
+// Mock responses for testing
+const getMockLoginResponse = (email: string): AxiosResponse<LoginResponse> => {
+  const headers = new AxiosHeaders();
+  headers.set('Content-Type', 'application/json');
+  
+  const config: InternalAxiosRequestConfig = {
+    headers,
+    method: 'POST',
+    url: '/auth/login',
+    data: {}
+  };
+
+  return {
+    data: {
+      tokens: {
+        accessToken: 'mock-token',
+        refreshToken: 'mock-refresh-token',
+        expiresIn: 3600
+      },
+      user: {
+        id: '1',
+        email,
+        name: 'Admin User',
+        role: 'admin' as UserRole
+      }
+    },
+    status: 200,
+    statusText: 'OK',
+    headers,
+    config
+  };
+};
+
+// Custom hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -33,13 +87,14 @@ export const useAuth = () => {
   return context;
 };
 
+// Provider Component
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [tokenExpiry, setTokenExpiry] = useState<number | null>(null);
 
-  // Initialize user data from localStorage
+  // Initialize authentication state
   useEffect(() => {
     const initializeAuth = () => {
       try {
@@ -47,27 +102,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const token = localStorage.getItem(TOKEN_KEY);
         const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
         const storedUser = localStorage.getItem(USER_KEY);
+        const expiry = localStorage.getItem(TOKEN_EXPIRY_KEY);
         
         if (token && refreshToken && storedUser) {
           try {
-            // Set the stored user data
             const parsedUser = JSON.parse(storedUser) as User;
             setCurrentUser(parsedUser);
             setError(null);
-            
-            // Set token expiry (1 hour from now if not specified)
-            const expiry = localStorage.getItem('token_expiry');
             setTokenExpiry(expiry ? parseInt(expiry) : Date.now() + 3600000);
-          } catch (err) {
-            console.error('Failed to parse stored user:', err);
+          } catch (error) {
+            console.error('Failed to parse stored user:', error);
             clearAuthData();
             setError('Session data corrupted. Please login again.');
           }
         } else {
           clearAuthData();
         }
-      } catch (err) {
-        console.error('Error initializing auth:', err);
+      } catch (error) {
+        console.error('Error initializing auth:', error);
         setError('Failed to initialize authentication');
       } finally {
         setLoading(false);
@@ -77,7 +129,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     initializeAuth();
   }, []);
 
-  // Check token expiry periodically
+  // Token expiry check
   useEffect(() => {
     if (!tokenExpiry) return;
 
@@ -93,116 +145,96 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => clearInterval(interval);
   }, [tokenExpiry]);
 
-  const clearAuthData = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem('token_expiry');
-    setCurrentUser(null);
-    setTokenExpiry(null);
-  };
-
   const refreshToken = async (): Promise<void> => {
     try {
-      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
-      if (!refreshToken) throw new Error('No refresh token available');
+      const tokens = localStorage.getItem('tokens');
+      if (!tokens) throw new Error('No refresh token available');
 
-      const response = await apiService.post<AuthTokens>('/auth/refresh', {
-        refreshToken
+      const response: AxiosResponse<LoginResponse> = await apiService.post('/auth/refresh-token', {
+        refreshToken: JSON.parse(tokens).refreshToken
       });
+      const { tokens: newTokens, user } = response.data;
 
-      const { accessToken, refreshToken: newRefreshToken, expiresIn } = response;
-      
-      localStorage.setItem(TOKEN_KEY, accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, newRefreshToken);
-      localStorage.setItem('token_expiry', (Date.now() + expiresIn * 1000).toString());
-      
-      setTokenExpiry(Date.now() + expiresIn * 1000);
-    } catch (err) {
-      console.error('Token refresh failed:', err);
+      localStorage.setItem('tokens', JSON.stringify(newTokens));
+      localStorage.setItem('user', JSON.stringify(user));
+      setCurrentUser(user);
+
+    } catch (error) {
+      console.error('Token refresh failed:', error);
       clearAuthData();
       throw new Error('Session expired. Please login again.');
     }
   };
 
-  // Login function
   const login = async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    setError(null);
+
     try {
-      setLoading(true);
-      setError(null);
-      
-      let response;
-      try {
-        response = await apiService.post<{ tokens: AuthTokens; user: User }>('/auth/login', {
-          email,
-          password
-        });
-      } catch (err: any) {
-        if (err.code === 'ERR_NETWORK' || err.response?.status === 404) {
-          // Mock response for testing when server is not available
-          if (email === 'admin@example.com' && password === 'admin123') {
-            response = {
-              tokens: {
-                accessToken: 'mock-token',
-                refreshToken: 'mock-refresh-token',
-                expiresIn: 3600
-              },
-              user: {
-                id: '1',
-                email: 'admin@example.com',
-                name: 'Admin User',
-                role: 'admin' as UserRole
-              }
-            };
-          } else {
-            throw new Error('Invalid credentials');
-          }
-        } else {
-          throw err;
+      // For testing when server is unavailable
+      if (process.env.NODE_ENV === 'development' && !process.env.REACT_APP_API_URL) {
+        if (email === 'admin@example.com' && password === 'password123') {
+          const mockResponse: LoginResponse = {
+            tokens: {
+              accessToken: 'mock-access-token',
+              refreshToken: 'mock-refresh-token',
+              expiresIn: 3600
+            },
+            user: {
+              id: '1',
+              email: 'admin@example.com',
+              name: 'Admin User',
+              role: 'admin' as UserRole
+            }
+          };
+          
+          localStorage.setItem('tokens', JSON.stringify(mockResponse.tokens));
+          localStorage.setItem('user', JSON.stringify(mockResponse.user));
+          setCurrentUser(mockResponse.user);
+          return;
         }
+        throw new Error('Invalid credentials');
       }
-      
-      const { tokens, user } = response;
-      
-      // Store tokens and user in localStorage
-      localStorage.setItem(TOKEN_KEY, tokens.accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-      localStorage.setItem('token_expiry', (Date.now() + tokens.expiresIn * 1000).toString());
-      
-      // Update state
+
+      const response: AxiosResponse<LoginResponse> = await apiService.post('/auth/login', { email, password });
+      const { tokens, user } = response.data;
+
+      localStorage.setItem('tokens', JSON.stringify(tokens));
+      localStorage.setItem('user', JSON.stringify(user));
       setCurrentUser(user);
-      setTokenExpiry(Date.now() + tokens.expiresIn * 1000);
-    } catch (err: any) {
-      console.error('Login failed:', err);
+
+    } catch (error) {
+      const apiError = error as AxiosError<ApiError>;
+      console.error('Login failed:', error);
       
-      if (err.message === 'Invalid credentials') {
+      if (error instanceof Error && error.message === 'Invalid credentials' || apiError.response?.status === 401) {
         setError('Invalid email or password');
-      } else if (err.code === 'ERR_NETWORK') {
+      } else if (apiError.code === 'ERR_NETWORK') {
         setError('Cannot connect to the server. Using mock data for testing.');
       } else {
         setError('Login failed. Please try again.');
       }
       
-      throw err;
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = async () => {
+  const logout = async (): Promise<void> => {
     try {
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
       if (refreshToken) {
-        // Attempt to invalidate refresh token on server
         try {
           await apiService.post('/auth/logout', { refreshToken });
-        } catch (err) {
-          console.error('Failed to invalidate refresh token:', err);
+        } catch (error) {
+          console.error('Failed to invalidate refresh token:', error);
         }
       }
     } finally {
       clearAuthData();
+      setCurrentUser(null);
+      setTokenExpiry(null);
     }
   };
   
@@ -213,32 +245,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     try {
-      setLoading(true);
-      let updatedUser: User;
+      const response: AxiosResponse<User> = await apiService.put('/users/profile', userData);
+      const updatedUser = response.data;
       
-      try {
-        updatedUser = await apiService.patch<User>(`/users/${currentUser.id}`, userData);
-      } catch (err: any) {
-        if (err.code === 'ERR_NETWORK' || err.response?.status === 404) {
-          // Mock update for testing
-          updatedUser = {
-            ...currentUser,
-            ...userData
-          };
-        } else {
-          throw err;
-        }
-      }
-      
+      localStorage.setItem('user', JSON.stringify(updatedUser));
       setCurrentUser(updatedUser);
-      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
-      setError(null);
-    } catch (err) {
-      console.error('Failed to update profile:', err);
+      
+    } catch (error) {
+      console.error('Failed to update profile:', error);
       setError('Failed to update profile. Please try again.');
-      throw err;
-    } finally {
-      setLoading(false);
+      throw error;
     }
   };
 

@@ -12,7 +12,7 @@ interface ProductItem {
 
 interface OrderSummaryProps {
   sections: FormSectionType[];
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
   productList: ProductItem[];
 }
 
@@ -36,7 +36,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({ sections, formData, product
                     let displayValue: string;
                     if (field.type === 'select' && field.options) {
                       const option = field.options.find(o => o.value === value);
-                      displayValue = option?.label || value;
+                      displayValue = option?.label || value.toString();
                     } else if (field.type === 'checkbox' && field.options) {
                       displayValue = value ? 'Yes' : 'No';
                     } else {

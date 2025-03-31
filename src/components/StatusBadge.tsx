@@ -83,7 +83,7 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <Badge 
-      variant={variant as any} 
+      variant={variant} 
       className={`${statusClassName} ${sizeClasses[size]} flex items-center gap-1 rounded-full ${className}`}
     >
       {showIcon && icon}

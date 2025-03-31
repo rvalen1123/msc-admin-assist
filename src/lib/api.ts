@@ -2,10 +2,21 @@
  * API client for communicating with the backend
  * Sets up axios with interceptors for authentication and error handling
  */
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { 
+  AxiosError, 
+  InternalAxiosRequestConfig,
+  AxiosResponse
+} from 'axios';
+import { ApiError, AuthTokens } from '@/types';
 
-// Use relative URLs for API requests, which will be handled by Vite's proxy
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = process.env.NODE_ENV === 'production' 
+  ? '/api' // In production, assuming the server is on the same domain
+  : 'http://localhost:3000'; // In development, pointing to NestJS server
+
+interface ErrorResponseData {
+  message: string;
+  error?: string;
+}
 
 // Create axios instance with default configuration
 const api = axios.create({
@@ -16,14 +27,16 @@ const api = axios.create({
   timeout: 10000, // 10 second timeout
 });
 
+interface QueueItem {
+  resolve: (token: string) => void;
+  reject: (error: ApiError) => void;
+}
+
 // Flag to prevent multiple refresh token requests
 let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (token: string) => void;
-  reject: (error: any) => void;
-}> = [];
+let failedQueue: QueueItem[] = [];
 
-const processQueue = (error: any = null) => {
+const processQueue = (error: ApiError | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -36,7 +49,7 @@ const processQueue = (error: any = null) => {
 
 // Request interceptor to add authentication token
 api.interceptors.request.use(
-  (config: AxiosRequestConfig): AxiosRequestConfig => {
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('auth_token');
     
     if (token && config.headers) {
@@ -48,21 +61,37 @@ api.interceptors.request.use(
   (error: AxiosError) => Promise.reject(error)
 );
 
+const createApiError = (
+  error: AxiosError<ErrorResponseData>,
+  code: string,
+  defaultMessage: string
+): ApiError => ({
+  code,
+  message: error.response?.data?.message || defaultMessage,
+  response: error.response && {
+    status: error.response.status,
+    data: {
+      message: error.response.data?.message || defaultMessage,
+      error: error.response.data?.error
+    }
+  }
+});
+
 // Response interceptor to handle common errors
 api.interceptors.response.use(
   (response: AxiosResponse) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config;
+  async (error: AxiosError<ErrorResponseData>) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
     
     if (!originalRequest) {
       return Promise.reject(error);
     }
 
     // Handle 401 Unauthorized errors (token expired)
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // If already refreshing, queue this request
-        return new Promise((resolve, reject) => {
+        return new Promise<string>((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
@@ -84,7 +113,7 @@ api.interceptors.response.use(
           throw new Error('No refresh token available');
         }
 
-        const response = await api.post<{ tokens: { accessToken: string; refreshToken: string; expiresIn: number } }>(
+        const response = await api.post<{ tokens: AuthTokens }>(
           '/auth/refresh',
           { refreshToken }
         );
@@ -99,16 +128,21 @@ api.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         }
 
-        processQueue(accessToken);
+        processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError);
+        const apiError = createApiError(
+          error,
+          'AUTH_REFRESH_FAILED',
+          'Token refresh failed'
+        );
+        processQueue(apiError);
         // Clear auth data and redirect to login
         localStorage.removeItem('auth_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('token_expiry');
         window.location.href = '/login';
-        return Promise.reject(refreshError);
+        return Promise.reject(apiError);
       } finally {
         isRefreshing = false;
       }
@@ -116,14 +150,29 @@ api.interceptors.response.use(
     
     // Handle 403 Forbidden errors (insufficient permissions)
     if (error.response?.status === 403) {
+      const apiError = createApiError(
+        error,
+        'FORBIDDEN',
+        'Permission denied'
+      );
       console.error('Permission denied:', error.response.data);
+      return Promise.reject(apiError);
     }
     
-    return Promise.reject(error);
+    // Handle other errors
+    return Promise.reject(
+      createApiError(
+        error,
+        'API_ERROR',
+        'An error occurred while processing your request'
+      )
+    );
   }
 );
 
 export default api;
+
+type QueryParams = Record<string, string | number | boolean | undefined>;
 
 // Type-safe API request helpers
 export const apiService = {
@@ -132,7 +181,10 @@ export const apiService = {
    * @param url - API endpoint
    * @param params - Query parameters
    */
-  async get<T>(url: string, params?: Record<string, any>): Promise<T> {
+  async get<T>(
+    url: string, 
+    params?: QueryParams
+  ): Promise<T> {
     const response = await api.get<T>(url, { params });
     return response.data;
   },
@@ -142,7 +194,10 @@ export const apiService = {
    * @param url - API endpoint
    * @param data - Request payload
    */
-  async post<T>(url: string, data?: any): Promise<T> {
+  async post<T, D = unknown>(
+    url: string, 
+    data?: D
+  ): Promise<T> {
     const response = await api.post<T>(url, data);
     return response.data;
   },
@@ -152,7 +207,10 @@ export const apiService = {
    * @param url - API endpoint
    * @param data - Request payload
    */
-  async put<T>(url: string, data: any): Promise<T> {
+  async put<T, D = unknown>(
+    url: string, 
+    data: D
+  ): Promise<T> {
     const response = await api.put<T>(url, data);
     return response.data;
   },
@@ -162,7 +220,10 @@ export const apiService = {
    * @param url - API endpoint
    * @param data - Request payload
    */
-  async patch<T>(url: string, data: any): Promise<T> {
+  async patch<T, D = unknown>(
+    url: string, 
+    data: D
+  ): Promise<T> {
     const response = await api.patch<T>(url, data);
     return response.data;
   },

@@ -7,7 +7,7 @@ import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover
 import { Bot, Loader2, Send, X } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { AIAssistantResponse } from '@/types';
-import { useForm } from '@/context/FormContext';
+import { useForm } from '@/context/form/FormProvider';
 import { customerData } from '@/data/mockData';
 
 interface AIAssistantProps {
@@ -122,7 +122,7 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ onSuggestion }) => {
   const applyAllSuggestions = () => {
     if (!response || !activeForm) return;
     
-    const updatedData: Record<string, any> = {};
+    const updatedData: Record<string, string> = {};
     response.forEach(item => {
       updatedData[item.field] = item.value;
     });

@@ -1,6 +1,7 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState } from 'react';
 import { onboardingFormTemplate, insuranceFormTemplate, orderFormTemplate } from '@/data/mockData';
-import { FormTemplate, FormField, CustomerData } from '@/types';
+import { FormTemplate, FormField, CustomerData, FormType } from '@/types';
 
 interface FormProgress {
   currentStep: number;
@@ -8,15 +9,18 @@ interface FormProgress {
   percentComplete: number;
 }
 
+type FormDataValue = string | number | boolean | null;
+type FormDataType = Record<string, FormDataValue>;
+
 interface FormContextType {
   activeForm: FormTemplate | null;
-  formData: Record<string, any>;
+  formData: FormDataType;
   formProgress: FormProgress;
-  setActiveForm: (formType: string) => void;
-  setFieldValue: (fieldId: string, value: any) => void;
+  setActiveForm: (formType: FormType) => void;
+  setFieldValue: (fieldId: string, value: FormDataValue) => void;
   goToNextStep: () => boolean;
   goToPreviousStep: () => void;
-  submitForm: () => Promise<any>;
+  submitForm: () => Promise<{ success: boolean; formData: FormDataType }>;
   resetForm: () => void;
   addCustomer: (customerData: Partial<CustomerData>) => Promise<string>;
 }
@@ -33,11 +37,11 @@ export const useForm = () => {
 
 export const FormProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeForm, setActiveFormState] = useState<FormTemplate | null>(null);
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<FormDataType>({});
   const [currentStep, setCurrentStep] = useState(1);
 
   // Set active form based on form type
-  const setActiveForm = (formType: string) => {
+  const setActiveForm = (formType: FormType) => {
     let template: FormTemplate | null = null;
     
     switch (formType) {
@@ -60,7 +64,7 @@ export const FormProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Set field value in form data
-  const setFieldValue = (fieldId: string, value: any) => {
+  const setFieldValue = (fieldId: string, value: FormDataValue) => {
     setFormData((prevData) => ({
       ...prevData,
       [fieldId]: value,
@@ -110,8 +114,8 @@ export const FormProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Submit the form (dummy implementation for demo)
-  const submitForm = async () => {
+  // Submit the form
+  const submitForm = async (): Promise<{ success: boolean; formData: FormDataType }> => {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({ success: true, formData });

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -8,6 +7,8 @@ import FormHeader from '@/components/form/FormHeader';
 import FormContent from '@/components/form/FormContent';
 import FormFooter from '@/components/form/FormFooter';
 import InsuranceReview from './InsuranceReview';
+
+type FormDataValue = string | number | boolean | null;
 
 const InsuranceForm: React.FC = () => {
   const { 
@@ -24,7 +25,7 @@ const InsuranceForm: React.FC = () => {
   const { toast } = useToast();
   
   // Handle form field changes
-  const handleFieldChange = (id: string, value: any) => {
+  const handleFieldChange = (id: string, value: FormDataValue) => {
     setFieldValue(id, value);
   };
   

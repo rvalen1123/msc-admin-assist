@@ -11,20 +11,22 @@ export const users: User[] = [
     id: '1',
     name: 'Admin User',
     email: 'admin@mscwoundcare.com',
-    role: 'admin'
+    role: 'admin',
+    organization: 'MSC Wound Care'
   },
   {
     id: '2',
     name: 'John Doe',
     email: 'john@customer.com',
     role: 'customer',
-    company: 'ABC Medical Group'
+    organization: 'ABC Medical Group'
   },
   {
     id: '3',
     name: 'Jane Smith',
     email: 'jane@mscwoundcare.com',
-    role: 'sales'
+    role: 'sales_rep',
+    organization: 'MSC Wound Care'
   }
 ];
 
@@ -896,7 +898,7 @@ export const insuranceVerificationTemplate: FormTemplate = {
           required: true,
           options: [
             { label: 'Select a sales representative', value: '' },
-            ...users.filter(u => u.role === 'sales').map(u => ({ label: u.name, value: u.id }))
+            ...users.filter(u => u.role === 'sales_rep').map(u => ({ label: u.name, value: u.id }))
           ]
         },
         {

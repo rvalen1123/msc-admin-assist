@@ -5,8 +5,8 @@ import { FormSection as FormSectionType } from '@/types';
 
 interface OrderFormSectionProps {
   section: FormSectionType;
-  formData: Record<string, any>;
-  onFieldChange: (id: string, value: any) => void;
+  formData: Record<string, unknown>;
+  onFieldChange: (id: string, value: unknown) => void;
 }
 
 const OrderFormSection: React.FC<OrderFormSectionProps> = ({ 

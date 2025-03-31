@@ -19,7 +19,7 @@ const GeneralSettingsTab = () => {
     }
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: unknown) => {
     console.log("General settings saved:", data);
     toast({
       title: "Settings saved",

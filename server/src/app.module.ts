@@ -16,6 +16,7 @@ import { FormsModule } from './modules/forms/forms.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { CommonModule } from './modules/common/common.module';
 import { TestModule } from './modules/test/test.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 // Dynamically include modules based on environment
 const environmentBasedModules = [];
@@ -53,6 +54,7 @@ if (process.env.NODE_ENV !== 'production') {
     FormsModule,
     OrdersModule,
     CommonModule,
+    PrismaModule,
     
     // Environment-specific modules
     ...environmentBasedModules,

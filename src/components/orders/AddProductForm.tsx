@@ -8,8 +8,8 @@ import { FormField as FormFieldType } from '@/types';
 
 interface AddProductFormProps {
   products: Product[];
-  formData: Record<string, any>;
-  onFieldChange: (id: string, value: any) => void;
+  formData: Record<string, unknown>;
+  onFieldChange: (id: string, value: unknown) => void;
   onAddProduct: () => void;
 }
 

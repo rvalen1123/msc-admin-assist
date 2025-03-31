@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '../../../utils/test-utils';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { render, screen, waitFor } from '../../utils/test-utils';
 import userEvent from '@testing-library/user-event';
-import { rest } from 'msw';
+import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import SubmissionsPage from '../../../pages/SubmissionsPage';
 
@@ -31,12 +31,12 @@ const mockSubmissions = [
 // Only set up mocks if we're not using the real API
 const server = !USE_REAL_API
   ? setupServer(
-      rest.get('http://localhost:3000/forms/submissions', (req, res, ctx) => {
-        return res(ctx.json(mockSubmissions));
+      http.get('http://localhost:3000/forms/submissions', () => {
+        return HttpResponse.json(mockSubmissions);
       }),
-      rest.delete('http://localhost:3000/forms/submissions/:id', (req, res, ctx) => {
-        const { id } = req.params;
-        return res(ctx.json({ id, deleted: true }));
+      http.delete('http://localhost:3000/forms/submissions/:id', ({ params }) => {
+        const { id } = params;
+        return HttpResponse.json({ id, deleted: true });
       })
     )
   : null;
@@ -117,4 +117,4 @@ describe('Form Submissions Integration', () => {
       expect(screen.getByText(/successfully deleted/i)).toBeInTheDocument();
     });
   });
-}); 
+});

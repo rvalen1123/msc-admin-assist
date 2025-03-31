@@ -60,7 +60,7 @@ export interface Submission {
   formId: string;
   customerId: string;
   dateSubmitted: Date;
-  formData: Record<string, any>;
+  formData: Record<string, string>;
 }
 
 export interface SalesRep {
@@ -84,17 +84,37 @@ export interface PriceHistory {
   updatedAt: Date;
 }
 
-export type UserRole = 'admin' | 'customer' | 'sales';
+export type UserRole = 'admin' | 'sales_rep' | 'customer';
 
 export interface User {
   id: string;
-  name?: string;
   email: string;
+  name: string;
   role: UserRole;
-  firstName?: string;
-  lastName?: string;
-  company?: string;
-  // Add other user properties as needed
+  organization?: string;
+}
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+}
+
+export interface LoginResponse {
+  tokens: AuthTokens;
+  user: User;
+}
+
+export interface ApiError {
+  code?: string;
+  response?: {
+    status: number;
+    data: {
+      message: string;
+      error?: string;
+    };
+  };
+  message: string;
 }
 
 export type FormType = 'onboarding' | 'insurance' | 'order' | 'dme';
@@ -124,7 +144,7 @@ export interface FormSubmission {
   id: string;
   templateId: string;
   userId: string;
-  data: Record<string, any>;
+  data: Record<string, string>;
   status: 'draft' | 'submitted' | 'processing' | 'completed' | 'rejected';
   submittedAt?: Date;
   completedAt?: Date;

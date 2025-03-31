@@ -17,7 +17,7 @@ const NotificationsSettingsTab = () => {
     }
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: unknown) => {
     console.log("Notification settings saved:", data);
     toast({
       title: "Settings saved",

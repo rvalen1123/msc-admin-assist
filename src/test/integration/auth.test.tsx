@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { render, screen, waitFor } from '../../utils/test-utils';
 import userEvent from '@testing-library/user-event';
-import LoginPage from '../../../pages/LoginPage';
+import LoginPage from '../../pages/LoginPage';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 
