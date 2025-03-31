@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/types';
@@ -16,12 +15,14 @@ export const TextField: React.FC<TextFieldProps> = ({ field, value, onChange }) 
 
   return (
     <Input
-      type={field.type === 'date' ? 'date' : field.type === 'phone' ? 'tel' : field.type === 'number' ? 'number' : 'text'}
       id={field.id}
+      name={field.id}
+      type={field.type === 'phone' ? 'tel' : field.type === 'date' ? 'date' : field.type}
       placeholder={field.placeholder}
       value={value || ''}
       onChange={handleChange}
-      className="form-input"
+      required={field.required}
+      className="form-input w-full"
     />
   );
 };

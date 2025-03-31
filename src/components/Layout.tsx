@@ -1,16 +1,15 @@
-
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from '@/components/ui/button';
-import { Bell, Home, FileText, ShieldCheck, Package, LogOut, Menu, User, Users, UserCog } from 'lucide-react';
+import { Bell, Home, FileText, ShieldCheck, Package, LogOut, Menu, User, Users } from 'lucide-react';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 import { useAuth } from '@/context/AuthContext';
 import AIAssistant from './AIAssistant';
 
 const Layout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
-  const { currentUser, logout, setCurrentUserRole } = useAuth();
+  const { currentUser, logout } = useAuth();
   const location = useLocation();
 
   // Check if we're on the login page
@@ -38,39 +37,6 @@ const Layout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
           <footer className="bg-white border-t border-gray-200 p-4 text-center text-sm text-gray-500">
             <p>&copy; {new Date().getFullYear()} MSC Wound Care. All rights reserved.</p>
           </footer>
-          
-          {/* User role switcher (for demo purposes only) */}
-          <div className="fixed bottom-6 left-6 z-50">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-2">
-              <p className="text-xs font-medium mb-1 text-gray-500">Demo: Switch User Role</p>
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  variant={currentUser?.role === 'admin' ? 'default' : 'outline'}
-                  className="text-xs h-8"
-                  onClick={() => setCurrentUserRole('admin')}
-                >
-                  <UserCog size={14} className="mr-1" /> Admin
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant={currentUser?.role === 'customer' ? 'default' : 'outline'}
-                  className="text-xs h-8"
-                  onClick={() => setCurrentUserRole('customer')}
-                >
-                  <User size={14} className="mr-1" /> Customer
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant={currentUser?.role === 'sales' ? 'default' : 'outline'}
-                  className="text-xs h-8"
-                  onClick={() => setCurrentUserRole('sales')}
-                >
-                  <Users size={14} className="mr-1" /> Sales
-                </Button>
-              </div>
-            </div>
-          </div>
           
           {/* AI Assistant */}
           <AIAssistant />

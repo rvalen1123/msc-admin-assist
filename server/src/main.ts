@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import * as compression from 'compression';
 import { json, urlencoded } from 'express';
 import { AppModule } from './app.module';
+import { Reflector } from '@nestjs/core';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -37,9 +38,21 @@ async function bootstrap() {
 
   // Enable CORS with enhanced security
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    origin: [
+      'http://localhost:8080',
+      'http://localhost:8081',
+      'http://localhost:5173',
+      process.env.FRONTEND_URL || 'http://localhost:8080'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'Accept',
+      'Origin',
+      'X-Requested-With'
+    ],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
     credentials: true,
     maxAge: 3600, // Cache preflight requests for 1 hour
   });
@@ -52,11 +65,12 @@ async function bootstrap() {
     disableErrorMessages: process.env.NODE_ENV === 'production',
   }));
 
-  // Global rate limiting guard
-  app.useGlobalGuards(new ThrottlerGuard({
-    ttl: 60, // 1 minute
-    limit: 100, // 100 requests per minute
-  }));
+  // Get references to services from the container
+  const reflector = app.get(Reflector);
+  
+  // Global rate limiting guard - fixed with proper parameters
+  // Don't apply in the main.ts file as it needs the container services
+  // We already have it configured in app.module.ts
 
   // Swagger setup
   const config = new DocumentBuilder()
@@ -68,6 +82,11 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  // Add health check endpoint
+  app.use('/health', (req, res) => {
+    res.status(200).send({ status: 'ok' });
+  });
 
   // Start the server
   const port = process.env.PORT || 3000;

@@ -13,6 +13,15 @@ import { ProductsModule } from './modules/products/products.module';
 import { FormsModule } from './modules/forms/forms.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { CommonModule } from './modules/common/common.module';
+import { TestModule } from './modules/test/test.module';
+
+// Dynamically include modules based on environment
+const environmentBasedModules = [];
+
+// Only include TestModule in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  environmentBasedModules.push(TestModule);
+}
 
 @Module({
   imports: [
@@ -42,6 +51,9 @@ import { CommonModule } from './modules/common/common.module';
     FormsModule,
     OrdersModule,
     CommonModule,
+    
+    // Environment-specific modules
+    ...environmentBasedModules,
   ],
   providers: [
     {

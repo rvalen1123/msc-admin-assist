@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -18,6 +17,8 @@ import SalesRepPage from "./pages/SalesRepPage";
 import ProductsPage from "./pages/ProductsPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
+import LoginPage from "./pages/LoginPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -39,16 +40,40 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<Layout />}>
+                {/* Public routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/unauthorized" element={<div>Unauthorized Access</div>} />
+                
+                {/* Protected routes */}
+                <Route path="/" element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }>
                   <Route index element={<Dashboard />} />
                   <Route path="onboarding" element={<OnboardingPage />} />
                   <Route path="insurance" element={<InsurancePage />} />
                   <Route path="orders" element={<OrderPage />} />
                   <Route path="customers" element={<CustomersPage />} />
                   <Route path="submissions" element={<SubmissionsPage />} />
-                  <Route path="sales-reps" element={<SalesRepPage />} />
-                  <Route path="products" element={<ProductsPage />} />
-                  <Route path="settings" element={<SettingsPage />} />
+                  
+                  {/* Admin-only routes */}
+                  <Route path="sales-reps" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <SalesRepPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="products" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <ProductsPage />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="settings" element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <SettingsPage />
+                    </ProtectedRoute>
+                  } />
+                  
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>

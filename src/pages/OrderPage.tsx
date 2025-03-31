@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
@@ -39,10 +39,14 @@ const OrderPage: React.FC = () => {
   const [productList, setProductList] = useState<ProductItem[]>([]);
   const [showDocuSeal, setShowDocuSeal] = useState(false);
   const { toast } = useToast();
+  const isInitialized = useRef(false);
   
   useEffect(() => {
-    setActiveForm('order');
-  }, [setActiveForm]);
+    if (!isInitialized.current && (!activeForm || activeForm.id !== 'order')) {
+      setActiveForm('order');
+      isInitialized.current = true;
+    }
+  }, [setActiveForm, activeForm]);
   
   useEffect(() => {
     if (formData.productManufacturer) {

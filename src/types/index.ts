@@ -1,4 +1,3 @@
-
 export interface Product {
   id: string;
   name: string;
@@ -89,10 +88,13 @@ export type UserRole = 'admin' | 'customer' | 'sales';
 
 export interface User {
   id: string;
-  name: string;
+  name?: string;
   email: string;
   role: UserRole;
+  firstName?: string;
+  lastName?: string;
   company?: string;
+  // Add other user properties as needed
 }
 
 export type FormType = 'onboarding' | 'insurance' | 'order' | 'dme';

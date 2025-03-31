@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useForm } from '@/context/FormContext';
@@ -25,11 +24,13 @@ const OnboardingPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const isInitialized = useRef(false);
   
   // Set active form type to onboarding on component mount, but only if it's not already set
   useEffect(() => {
-    if (!activeForm || activeForm.id !== 'onboarding') {
+    if (!isInitialized.current && (!activeForm || activeForm.id !== 'onboarding')) {
       setActiveForm('onboarding');
+      isInitialized.current = true;
     }
   }, [setActiveForm, activeForm]);
   

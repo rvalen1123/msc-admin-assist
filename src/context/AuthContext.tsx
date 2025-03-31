@@ -1,16 +1,18 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User } from '../types';
-import { users } from '../data/mockData';
+import { User, UserRole } from '../types';
+import { apiService } from '../lib/api';
 
 interface AuthContextType {
   currentUser: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  setCurrentUserRole: (role: 'admin' | 'customer' | 'sales') => void;
-  updateUserProfile: (userData: Partial<User>) => void;
+  updateUserProfile: (userData: Partial<User>) => Promise<void>;
 }
+
+const TOKEN_KEY = 'auth_token';
+const USER_KEY = 'current_user';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -25,78 +27,127 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Mock login function
-  const login = async (email: string, password: string): Promise<User> => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Find user with matching email (in a real app, you'd verify the password too)
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    
-    if (!user) {
-      throw new Error('Invalid email or password');
+  // Fetch user profile using the token
+  const fetchUserProfile = async () => {
+    try {
+      setLoading(true);
+      const userData = await apiService.get<User>('/auth/profile');
+      setCurrentUser(userData);
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+      setError(null);
+    } catch (err) {
+      console.error('Failed to fetch user profile:', err);
+      setError('Session expired. Please login again.');
+      
+      // Clear invalid auth data
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      setCurrentUser(null);
+    } finally {
+      setLoading(false);
     }
-    
-    // Store user in state and localStorage
-    setCurrentUser(user);
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    
-    return user;
+  };
+
+  // Real login function using the API
+  const login = async (email: string, password: string): Promise<void> => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await apiService.post<{ token: string; user: User }>('/auth/login', {
+        email,
+        password
+      });
+      
+      // Store token and user in localStorage
+      localStorage.setItem(TOKEN_KEY, response.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(response.user));
+      
+      // Update state
+      setCurrentUser(response.user);
+    } catch (err: any) {
+      console.error('Login failed:', err);
+      
+      // Set appropriate error message based on error type
+      if (err.response?.status === 401) {
+        setError('Invalid email or password');
+      } else if (err.code === 'ERR_NETWORK') {
+        setError('Cannot connect to the server. Please check if the backend server is running.');
+      } else {
+        setError('Login failed. Please try again.');
+      }
+      
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = () => {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
     setCurrentUser(null);
-    localStorage.removeItem('currentUser');
-  };
-
-  const setCurrentUserRole = (role: 'admin' | 'customer' | 'sales') => {
-    // For demo purposes, this allows switching between user roles
-    const userForRole = users.find(u => u.role === role);
-    if (userForRole) {
-      setCurrentUser(userForRole);
-      localStorage.setItem('currentUser', JSON.stringify(userForRole));
-    }
+    setError(null);
+    
+    // Optional: Call logout endpoint if server needs to invalidate the token
+    // apiService.post('/auth/logout').catch(err => console.error('Logout error:', err));
   };
   
-  const updateUserProfile = (userData: Partial<User>) => {
-    if (currentUser) {
-      const updatedUser = { ...currentUser, ...userData };
+  const updateUserProfile = async (userData: Partial<User>): Promise<void> => {
+    if (!currentUser) {
+      setError('You must be logged in to update your profile');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      const updatedUser = await apiService.patch<User>(`/users/${currentUser.id}`, userData);
+      
       setCurrentUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
+      setError(null);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      setError('Failed to update profile. Please try again.');
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
-    }
+    // Check if token exists in localStorage
+    const token = localStorage.getItem(TOKEN_KEY);
+    const storedUser = localStorage.getItem(USER_KEY);
     
-    // For demo purposes, set a default user if none exists
-    // Remove this in a production app
-    if (!storedUser) {
-      const defaultUser = users[0]; // Admin user
-      setCurrentUser(defaultUser);
-      localStorage.setItem('currentUser', JSON.stringify(defaultUser));
+    if (token) {
+      // If we have a token, fetch the current user profile
+      fetchUserProfile();
+    } else if (storedUser) {
+      // If we have a stored user but no token, clear it (invalid state)
+      localStorage.removeItem(USER_KEY);
+      setCurrentUser(null);
+      setLoading(false);
+    } else {
+      // No authentication data found
+      setLoading(false);
     }
-    
-    setLoading(false);
   }, []);
 
   const value = {
     currentUser,
     loading,
+    error,
     login,
     logout,
-    setCurrentUserRole,
     updateUserProfile
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };

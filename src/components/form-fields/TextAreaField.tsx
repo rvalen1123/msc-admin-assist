@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { FormField } from '@/types';
@@ -17,10 +16,12 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({ field, value, onCh
   return (
     <Textarea
       id={field.id}
+      name={field.id}
       placeholder={field.placeholder}
       value={value || ''}
       onChange={handleChange}
-      className="form-input min-h-[100px]"
+      required={field.required}
+      className="form-input min-h-[100px] w-full"
     />
   );
 };

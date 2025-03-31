@@ -1,4 +1,3 @@
-
 import { 
   User, 
   Manufacturer, 
@@ -491,6 +490,163 @@ export const onboardingFormTemplate: FormTemplate = {
       id: 'step5',
       title: 'Additional Information & Agreement',
       sections: ['additional', 'agreement']
+    }
+  ]
+};
+
+export const insuranceFormTemplate: FormTemplate = {
+  id: '2',
+  type: 'insurance',
+  title: 'Insurance Verification Form',
+  description: 'Complete this form to verify insurance coverage for wound care products.',
+  sections: [
+    {
+      id: 'patient',
+      title: 'Patient Information',
+      fields: [
+        {
+          id: 'patientName',
+          label: 'Patient Name',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter patient name'
+        },
+        {
+          id: 'patientDOB',
+          label: 'Date of Birth',
+          type: 'date',
+          required: true
+        },
+        {
+          id: 'patientPhone',
+          label: 'Patient Phone',
+          type: 'phone',
+          required: true,
+          placeholder: 'Enter patient phone'
+        },
+        {
+          id: 'patientEmail',
+          label: 'Patient Email',
+          type: 'email',
+          required: false,
+          placeholder: 'Enter patient email'
+        }
+      ]
+    },
+    {
+      id: 'insurance',
+      title: 'Insurance Information',
+      fields: [
+        {
+          id: 'insuranceProvider',
+          label: 'Insurance Provider',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter insurance provider'
+        },
+        {
+          id: 'memberId',
+          label: 'Member ID/Policy Number',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter member ID'
+        },
+        {
+          id: 'groupNumber',
+          label: 'Group Number',
+          type: 'text',
+          required: false,
+          placeholder: 'Enter group number if applicable'
+        },
+        {
+          id: 'insurancePhone',
+          label: 'Insurance Phone Number',
+          type: 'phone',
+          required: true,
+          placeholder: 'Enter insurance contact number'
+        },
+        {
+          id: 'isPrimary',
+          label: 'Is this the primary insurance?',
+          type: 'radio',
+          required: true,
+          options: [
+            { label: 'Yes', value: 'yes' },
+            { label: 'No', value: 'no' }
+          ]
+        }
+      ]
+    },
+    {
+      id: 'provider',
+      title: 'Provider Information',
+      fields: [
+        {
+          id: 'referringProvider',
+          label: 'Referring Provider Name',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter provider name'
+        },
+        {
+          id: 'providerNPI',
+          label: 'Provider NPI',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter provider NPI'
+        },
+        {
+          id: 'facilityName',
+          label: 'Facility Name',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter facility name'
+        }
+      ]
+    },
+    {
+      id: 'diagnosis',
+      title: 'Diagnosis Information',
+      fields: [
+        {
+          id: 'primaryDiagnosis',
+          label: 'Primary Diagnosis',
+          type: 'text',
+          required: true,
+          placeholder: 'Enter ICD-10 code'
+        },
+        {
+          id: 'secondaryDiagnosis',
+          label: 'Secondary Diagnosis',
+          type: 'text',
+          required: false,
+          placeholder: 'Enter secondary ICD-10 code if applicable'
+        },
+        {
+          id: 'diagnosisNotes',
+          label: 'Diagnosis Notes',
+          type: 'textarea',
+          required: false,
+          placeholder: 'Enter any additional diagnosis information'
+        }
+      ]
+    }
+  ],
+  steps: [
+    {
+      id: 'step1',
+      title: 'Patient Information',
+      sections: ['patient']
+    },
+    {
+      id: 'step2',
+      title: 'Insurance Details',
+      sections: ['insurance']
+    },
+    {
+      id: 'step3',
+      title: 'Provider & Diagnosis',
+      sections: ['provider', 'diagnosis']
     }
   ]
 };

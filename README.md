@@ -1,5 +1,141 @@
 # MSC Wound Care Admin Portal
 
+A full-stack application for MSC Wound Care administration, featuring a React frontend and NestJS backend.
+
+## Project Structure
+
+```
+.
+├── server/                # NestJS backend
+│   └── ...                # See server/README.md for details
+├── src/                   # React frontend
+│   ├── components/        # UI components
+│   ├── context/           # React context providers
+│   ├── hooks/             # Custom React hooks
+│   ├── lib/               # Utilities and services
+│   │   ├── api.ts         # API client with interceptors
+│   │   └── services/      # API service functions
+│   ├── pages/             # Page components
+│   └── types/             # TypeScript type definitions
+└── ...                    # Root configuration files
+```
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+- Git
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd msc-admin-assist
+   ```
+
+2. Install dependencies for both frontend and backend:
+   ```bash
+   npm install
+   cd server && npm install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   # For backend
+   cp server/.env.example server/.env
+   # Edit server/.env with your configuration
+
+   # For frontend
+   cp .env.development .env.local
+   # Edit .env.local with your configuration
+   ```
+
+4. Set up the database:
+   ```bash
+   cd server
+   npx prisma generate
+   npx prisma migrate deploy
+   ```
+
+5. Start the development servers:
+   ```bash
+   # From the project root
+   npm run dev:all
+   ```
+
+## Development
+
+- `npm run dev` - Start frontend development server
+- `npm run dev:backend` - Start backend development server
+- `npm run dev:all` - Start both frontend and backend servers
+- `npm run build` - Build the frontend
+- `npm run build:dev` - Build the frontend for development
+- `npm run build:backend` - Build the backend
+- `npm run build:all` - Build both frontend and backend
+- `npm run lint` - Lint frontend code
+- `npm run lint:backend` - Lint backend code
+- `npm run lint:all` - Lint both frontend and backend code
+
+## Testing
+
+See [docs/testing.md](docs/testing.md) for detailed testing documentation.
+
+- `npm run test` - Run frontend tests
+- `npm run test:coverage` - Run frontend tests with coverage
+- `npm run test:backend` - Run backend tests
+- `npm run test:backend:cov` - Run backend tests with coverage
+- `npm run test:e2e` - Run end-to-end tests
+- `npm run test:e2e:seed` - Run end-to-end tests with test data seeding
+- `npm run test:all` - Run all tests (frontend and backend)
+
+## Authentication
+
+The application uses JWT for authentication. The authentication flow is:
+
+1. User logs in with email/password through the `/auth/login` endpoint
+2. Backend validates credentials and returns a JWT token
+3. Frontend stores the token in localStorage
+4. JWT token is included in subsequent API requests
+5. Protected routes check for valid token before rendering
+
+## API Integration
+
+The frontend communicates with the backend using a set of service functions built on top of Axios:
+
+- `customerService` - Manages customer data
+- `productService` - Manages product data
+- `formService` - Manages form templates and submissions
+- `orderService` - Manages orders and order items
+
+Each service provides methods for CRUD operations and additional business logic.
+
+## Deployment
+
+### Frontend
+
+The frontend is built as a static site and can be deployed to:
+- Azure Static Web Apps
+- Vercel
+- Netlify
+- Any static file hosting
+
+### Backend
+
+The backend is containerized with Docker and can be deployed to:
+- Azure Container Apps
+- AWS ECS
+- Google Cloud Run
+- Any Kubernetes cluster
+
+See `server/README.md` for detailed backend deployment instructions.
+
+## License
+
+This project is private and confidential. All rights reserved.
+
 ## Project Overview
 
 This is a full-stack application consisting of:
