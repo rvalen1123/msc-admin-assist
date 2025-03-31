@@ -1,29 +1,25 @@
-
-import React from 'react';
-import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Clock, FileText, XCircle } from 'lucide-react';
 import { FormSubmission } from '@/types';
 
-export type StatusVariant = 'default' | 'outline' | 'secondary';
 export type StatusSize = 'default' | 'sm' | 'lg';
 
 interface StatusBadgeProps {
   status: FormSubmission['status'] | string;
-  variant?: StatusVariant;
+  variant?: 'default' | 'secondary' | 'destructive' | 'outline';
   size?: StatusSize;
   showIcon?: boolean;
   className?: string;
   customLabel?: string;
 }
 
-const StatusBadge: React.FC<StatusBadgeProps> = ({ 
+const StatusBadge = ({ 
   status, 
   variant = 'outline', 
   size = 'default', 
   showIcon = true,
   className = '',
   customLabel
-}) => {
+}: StatusBadgeProps) => {
   // Define styling based on status
   const getStatusConfig = () => {
     switch (status.toLowerCase()) {
@@ -82,13 +78,10 @@ const StatusBadge: React.FC<StatusBadgeProps> = ({
   };
 
   return (
-    <Badge 
-      variant={variant} 
-      className={`${statusClassName} ${sizeClasses[size]} flex items-center gap-1 rounded-full ${className}`}
-    >
+    <div className={`inline-flex items-center rounded-full border ${statusClassName} ${sizeClasses[size]} flex items-center gap-1 rounded-full ${className}`}>
       {showIcon && icon}
       <span className="whitespace-nowrap">{label}</span>
-    </Badge>
+    </div>
   );
 };
 

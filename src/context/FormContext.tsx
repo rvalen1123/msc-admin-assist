@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, type ReactNode } from 'react';
 import { onboardingFormTemplate, insuranceFormTemplate, orderFormTemplate } from '@/data/mockData';
 import { FormTemplate, FormField, CustomerData, FormType } from '@/types';
 
@@ -35,7 +35,7 @@ export const useForm = () => {
   return context;
 };
 
-export const FormProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const FormProvider = ({ children }: { children: ReactNode }) => {
   const [activeForm, setActiveFormState] = useState<FormTemplate | null>(null);
   const [formData, setFormData] = useState<FormDataType>({});
   const [currentStep, setCurrentStep] = useState(1);

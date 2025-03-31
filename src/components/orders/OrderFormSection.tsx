@@ -1,5 +1,4 @@
-
-import React from 'react';
+import { FC } from 'react';
 import FormField from '@/components/FormField';
 import { FormSection as FormSectionType } from '@/types';
 
@@ -9,7 +8,7 @@ interface OrderFormSectionProps {
   onFieldChange: (id: string, value: unknown) => void;
 }
 
-const OrderFormSection: React.FC<OrderFormSectionProps> = ({ 
+const OrderFormSection: FC<OrderFormSectionProps> = ({ 
   section, 
   formData, 
   onFieldChange 
